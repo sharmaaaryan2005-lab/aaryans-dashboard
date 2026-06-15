@@ -132,6 +132,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <button class="nav-item" data-page="boxing" onclick="navTo('boxing',this)"><span class="nav-icon">🥊</span>Boxing</button>
     <button class="nav-item" data-page="sleep" onclick="navTo('sleep',this)"><span class="nav-icon">😴</span>Sleep</button>
     <button class="nav-item" data-page="experimental" onclick="navTo('experimental',this)"><span class="nav-icon">🧪</span>Experimental</button>
+    <button class="nav-item" data-page="clothes" onclick="navTo('clothes',this)"><span class="nav-icon">👕</span>Clothes</button>
     <div class="nav-section-label">Business</div>
     <button class="nav-item" data-page="convrt" onclick="navTo('convrt',this)"><span class="nav-icon">🚀</span>Convrt</button>
     <button class="nav-item" data-page="zomato" onclick="navTo('zomato',this)"><span class="nav-icon">🍽️</span>Zomato Internship</button>
@@ -412,6 +413,55 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
       <div id="experimental-list"></div>
     </div>
 
+    <!-- CLOTHES -->
+    <div class="page" id="page-clothes">
+      <div class="page-header">
+        <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
+          <div><div class="page-title" id="clothes-title" contenteditable="true" onblur="saveSectionTitle('clothes','title',this)">Clothes</div><div class="page-sub" id="clothes-sub" contenteditable="true" onblur="saveSectionTitle('clothes','sub',this)">Wardrobe catalog &amp; outfit builder</div></div>
+        </div>
+      </div>
+      <div class="day-tabs" id="clothes-section-tabs">
+        <div class="day-tab active" data-section="catalog" onclick="setClothesSection('catalog')">Catalog</div>
+        <div class="day-tab" data-section="outfit" onclick="setClothesSection('outfit')">Outfit Builder</div>
+        <div class="day-tab" data-section="history" onclick="setClothesSection('history')">Wear History</div>
+      </div>
+
+      <!-- CATALOG -->
+      <div id="clothes-catalog-view">
+        <div class="day-tabs" id="clothes-category-tabs"></div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold" id="clothes-category-label"></div>
+          <button class="btn btn-sm btn-accent" onclick="addClothingItem()">+ Add item</button>
+        </div>
+        <div id="clothes-item-list"></div>
+      </div>
+
+      <!-- OUTFIT BUILDER -->
+      <div id="clothes-outfit-view" style="display:none">
+        <div class="card mb-4">
+          <div class="font-semibold mb-3">Build an outfit</div>
+          <div class="grid-2" id="outfit-pickers"></div>
+          <div class="flex gap-2 mt-4">
+            <input type="text" id="outfit-name" placeholder="Outfit name (optional, e.g. 'Date night')" style="flex:1" />
+            <button class="btn btn-sm" onclick="saveOutfitTemplate()">Save as template</button>
+            <button class="btn btn-sm btn-accent" onclick="logOutfitWorn()">Log as worn today</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="font-semibold mb-3">Saved outfit templates</div>
+          <div id="outfit-templates-list"></div>
+        </div>
+      </div>
+
+      <!-- WEAR HISTORY -->
+      <div id="clothes-history-view" style="display:none">
+        <div class="card">
+          <div class="font-semibold mb-3">What you've worn</div>
+          <div id="clothes-wear-history"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
       <div class="page-header"><div class="page-title">Settings</div></div>
@@ -552,6 +602,20 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     </div>
   </div>
 </div>
+
+<div class="modal-bg" id="modal-edit-clothing" style="display:none" onclick="if(event.target===this)closeModal('modal-edit-clothing')">
+  <div class="modal"><div class="modal-title">Edit item</div>
+    <div class="flex flex-col gap-3">
+      <div><div class="label mb-1">Name</div><input type="text" id="cloth-name" placeholder="e.g. Navy polo" /></div>
+      <div class="grid-2">
+        <div><div class="label mb-1">Colour</div><input type="text" id="cloth-colour" placeholder="e.g. Navy" /></div>
+        <div><div class="label mb-1">Tag</div><input type="text" id="cloth-tag" placeholder="e.g. Casual" list="cloth-tags" /><datalist id="cloth-tags"><option>Casual</option><option>Formal</option><option>Gym</option><option>Smart casual</option><option>Ethnic</option></datalist></div>
+      </div>
+      <div><div class="label mb-1">Status</div><select id="cloth-status"><option value="clean">Clean</option><option value="dirty">Dirty / in laundry</option></select></div>
+      <div class="flex gap-2 mt-2"><button class="btn w-full" onclick="closeModal('modal-edit-clothing')">Cancel</button><button class="btn btn-accent w-full" onclick="saveClothingItem()">Save</button></div>
+    </div>
+  </div>
+</div>
 <script>
 // ============ STATE ============
 const todayStr=()=>new Date().toISOString().split('T')[0];
@@ -597,6 +661,9 @@ const DEFAULTS={
   boxingSchedule:null,
   boxingTrackRounds:false,
   sleepLog:{},
+  clothesItems:[],
+  outfitTemplates:[],
+  wearHistory:{},
 };
 
 let D=load();
@@ -685,7 +752,7 @@ window.resetAllData=()=>{
 function renderPage(p){
   ({home:renderHome,habits:renderHabits,goals:renderGoals,journal:renderJournal,finance:renderFinance,
     convrt:renderConvrt,zomato:renderZomato,diet:renderDiet,gym:renderGym,homeworkout:renderHomeWorkout,steps:renderSteps,
-    boxing:renderBoxing,sleep:renderSleep,experimental:renderExperimental
+    boxing:renderBoxing,sleep:renderSleep,experimental:renderExperimental,clothes:renderClothes
   })[p]?.();
 }
 
@@ -1541,6 +1608,210 @@ window.logSleep=()=>{
 };
 </script>
 <script>
+// ============ CLOTHES ============
+const CLOTHES_CATEGORIES=[
+  {id:'underwear',label:'Underwear'},
+  {id:'socks',label:'Socks'},
+  {id:'hats',label:'Hats'},
+  {id:'lenses',label:'Lenses'},
+  {id:'tshirts_formal',label:'T-shirts (Formal/Polo)'},
+  {id:'tshirts_informal',label:'T-shirts (Informal)'},
+  {id:'cutsleeves',label:'Cut-sleeves'},
+  {id:'jeans',label:'Jeans'},
+  {id:'pants',label:'Pants'},
+  {id:'jackets',label:'Jackets'},
+  {id:'shirts',label:'Shirts'},
+  {id:'linenshirts',label:'Linen Shirts'},
+  {id:'tracks',label:'Tracks'},
+  {id:'sweatpants',label:'Sweatpants'},
+  {id:'shoes',label:'Shoes'},
+  {id:'sleepingpants',label:'Sleeping Pants'},
+  {id:'extra',label:'Extra (Beach / Indian / Formal Attire)'}
+];
+// outfit-relevant categories (used in the outfit builder — excludes things like sleeping pants, lenses optional)
+const OUTFIT_CATEGORIES=['hats','lenses','tshirts_formal','tshirts_informal','cutsleeves','jeans','pants','jackets','shirts','linenshirts','tracks','sweatpants','shoes','underwear','socks'];
+
+let _clothesSection='catalog',_clothesCategory='underwear';
+let _editingClothId=null;
+
+function seedClothesIfNeeded(){
+  D.clothesItems=D.clothesItems||[];
+  D.outfitTemplates=D.outfitTemplates||[];
+  D.wearHistory=D.wearHistory||{};
+}
+
+window.setClothesSection=sec=>{
+  _clothesSection=sec;
+  document.querySelectorAll('#clothes-section-tabs .day-tab').forEach(t=>t.classList.toggle('active',t.dataset.section===sec));
+  document.getElementById('clothes-catalog-view').style.display=sec==='catalog'?'block':'none';
+  document.getElementById('clothes-outfit-view').style.display=sec==='outfit'?'block':'none';
+  document.getElementById('clothes-history-view').style.display=sec==='history'?'block':'none';
+  renderClothes();
+};
+
+function renderClothes(){
+  seedClothesIfNeeded();
+  applySectionMeta('clothes','clothes-title','clothes-sub','Clothes','Wardrobe catalog & outfit builder');
+  if(_clothesSection==='catalog')renderClothesCatalog();
+  else if(_clothesSection==='outfit')renderOutfitBuilder();
+  else renderWearHistory();
+}
+
+// ---- CATALOG ----
+function renderClothesCatalog(){
+  document.getElementById('clothes-category-tabs').innerHTML=CLOTHES_CATEGORIES.map(c=>{
+    const count=D.clothesItems.filter(i=>i.category===c.id).length;
+    return`<div class="day-tab ${c.id===_clothesCategory?'active':''}" onclick="setClothesCategory('${c.id}')">${c.label}${count?` (${count})`:''}</div>`;
+  }).join('');
+  const cat=CLOTHES_CATEGORIES.find(c=>c.id===_clothesCategory);
+  document.getElementById('clothes-category-label').textContent=cat.label;
+  const items=D.clothesItems.filter(i=>i.category===_clothesCategory);
+  document.getElementById('clothes-item-list').innerHTML=items.length?items.map(item=>`<div class="exercise-row">
+    <div style="flex:2;min-width:140px"><span class="font-medium text-sm">${item.name}</span>${item.colour?` <span class="text-xs text-dim">(${item.colour})</span>`:''}</div>
+    ${item.tag?`<span class="tag tag-${tagColor(item.tag)} text-xs">${item.tag}</span>`:''}
+    <span class="tag ${item.status==='dirty'?'tag-red':'tag-green'} text-xs" style="cursor:pointer" onclick="toggleClothStatus('${item.id}')">${item.status==='dirty'?'In laundry':'Clean'}</span>
+    <button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="editClothingItem('${item.id}')">Edit</button>
+    <button onclick="deleteClothingItem('${item.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>
+  </div>`).join(''):'<div class="text-muted text-sm">No items in this category yet. Click + Add item.</div>';
+}
+function tagColor(tag){
+  return{Casual:'blue',Formal:'purple',Gym:'green','Smart casual':'orange',Ethnic:'pink'}[tag]||'blue';
+}
+window.setClothesCategory=cat=>{_clothesCategory=cat;renderClothesCatalog();};
+window.toggleClothStatus=id=>{
+  const item=D.clothesItems.find(i=>i.id===id);if(!item)return;
+  item.status=item.status==='dirty'?'clean':'dirty';
+  save();renderClothesCatalog();
+};
+window.addClothingItem=()=>{
+  _editingClothId=null;
+  document.getElementById('cloth-name').value='';
+  document.getElementById('cloth-colour').value='';
+  document.getElementById('cloth-tag').value='';
+  document.getElementById('cloth-status').value='clean';
+  openModal('modal-edit-clothing');
+};
+window.editClothingItem=id=>{
+  _editingClothId=id;
+  const item=D.clothesItems.find(i=>i.id===id);if(!item)return;
+  document.getElementById('cloth-name').value=item.name;
+  document.getElementById('cloth-colour').value=item.colour||'';
+  document.getElementById('cloth-tag').value=item.tag||'';
+  document.getElementById('cloth-status').value=item.status||'clean';
+  openModal('modal-edit-clothing');
+};
+window.saveClothingItem=()=>{
+  const name=document.getElementById('cloth-name').value.trim();if(!name)return;
+  const colour=document.getElementById('cloth-colour').value.trim();
+  const tag=document.getElementById('cloth-tag').value.trim();
+  const status=document.getElementById('cloth-status').value;
+  if(_editingClothId){
+    const item=D.clothesItems.find(i=>i.id===_editingClothId);
+    if(item){item.name=name;item.colour=colour;item.tag=tag;item.status=status;}
+  }else{
+    D.clothesItems.push({id:uid(),category:_clothesCategory,name,colour,tag,status,createdAt:Date.now()});
+  }
+  save();closeModal('modal-edit-clothing');renderClothesCatalog();
+};
+window.deleteClothingItem=id=>{
+  if(!confirm('Remove this item?'))return;
+  D.clothesItems=D.clothesItems.filter(i=>i.id!==id);save();renderClothesCatalog();
+};
+
+// ---- OUTFIT BUILDER ----
+let _outfitSelection={};
+function renderOutfitBuilder(){
+  document.getElementById('outfit-pickers').innerHTML=OUTFIT_CATEGORIES.map(catId=>{
+    const cat=CLOTHES_CATEGORIES.find(c=>c.id===catId);
+    const items=D.clothesItems.filter(i=>i.category===catId&&i.status!=='dirty');
+    const selected=_outfitSelection[catId]||'';
+    return`<div>
+      <div class="label mb-1">${cat.label}</div>
+      <select onchange="setOutfitPick('${catId}',this.value)">
+        <option value="">— none —</option>
+        ${items.map(i=>`<option value="${i.id}" ${selected===i.id?'selected':''}>${i.name}${i.colour?' ('+i.colour+')':''}</option>`).join('')}
+      </select>
+    </div>`;
+  }).join('');
+  renderOutfitTemplates();
+}
+window.setOutfitPick=(catId,itemId)=>{
+  if(itemId)_outfitSelection[catId]=itemId;else delete _outfitSelection[catId];
+};
+function renderOutfitTemplates(){
+  const wrap=document.getElementById('outfit-templates-list');
+  if(!D.outfitTemplates.length){wrap.innerHTML='<div class="text-muted text-sm">No saved outfits yet.</div>';return;}
+  wrap.innerHTML=D.outfitTemplates.map(o=>{
+    const itemNames=Object.values(o.items).map(id=>{
+      const item=D.clothesItems.find(i=>i.id===id);
+      return item?item.name:null;
+    }).filter(Boolean);
+    return`<div class="flex items-center justify-between" style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div class="text-sm font-medium">${o.name}</div>
+        <div class="text-xs text-dim mt-1">${itemNames.join(' · ')}</div>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-sm" onclick="loadOutfitTemplate('${o.id}')">Load</button>
+        <button class="btn btn-sm btn-accent" onclick="logOutfitTemplateWorn('${o.id}')">Wear today</button>
+        <button onclick="deleteOutfitTemplate('${o.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.loadOutfitTemplate=id=>{
+  const o=D.outfitTemplates.find(o=>o.id===id);if(!o)return;
+  _outfitSelection=JSON.parse(JSON.stringify(o.items));
+  renderOutfitBuilder();
+};
+window.deleteOutfitTemplate=id=>{
+  D.outfitTemplates=D.outfitTemplates.filter(o=>o.id!==id);save();renderOutfitTemplates();
+};
+window.saveOutfitTemplate=()=>{
+  if(!Object.keys(_outfitSelection).length)return alert('Pick at least one item first.');
+  const name=document.getElementById('outfit-name').value.trim()||'Untitled outfit';
+  D.outfitTemplates.push({id:uid(),name,items:JSON.parse(JSON.stringify(_outfitSelection)),createdAt:Date.now()});
+  save();document.getElementById('outfit-name').value='';renderOutfitTemplates();
+};
+window.logOutfitWorn=()=>{
+  if(!Object.keys(_outfitSelection).length)return alert('Pick at least one item first.');
+  const today=todayStr();
+  D.wearHistory[today]=D.wearHistory[today]||[];
+  D.wearHistory[today].push({items:JSON.parse(JSON.stringify(_outfitSelection)),loggedAt:Date.now()});
+  save();
+  alert("Logged today's outfit!");
+};
+window.logOutfitTemplateWorn=id=>{
+  const o=D.outfitTemplates.find(o=>o.id===id);if(!o)return;
+  const today=todayStr();
+  D.wearHistory[today]=D.wearHistory[today]||[];
+  D.wearHistory[today].push({items:JSON.parse(JSON.stringify(o.items)),name:o.name,loggedAt:Date.now()});
+  save();
+  alert(`Logged "${o.name}" as worn today!`);
+};
+
+// ---- WEAR HISTORY ----
+function renderWearHistory(){
+  const dates=Object.keys(D.wearHistory).sort((a,b)=>b.localeCompare(a)).slice(0,30);
+  if(!dates.length){document.getElementById('clothes-wear-history').innerHTML='<div class="text-muted text-sm">No outfits logged yet. Use the Outfit Builder to log what you wear.</div>';return;}
+  document.getElementById('clothes-wear-history').innerHTML=dates.map(d=>{
+    const entries=D.wearHistory[d];
+    return entries.map(e=>{
+      const itemNames=Object.values(e.items).map(id=>{
+        const item=D.clothesItems.find(i=>i.id===id);
+        return item?item.name:null;
+      }).filter(Boolean);
+      return`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+        <div class="flex items-center justify-between mb-1">
+          <div class="text-sm font-medium">${fmtDate(d)}${e.name?' — '+e.name:''}</div>
+        </div>
+        <div class="text-xs text-dim">${itemNames.join(' · ')||'(items deleted)'}</div>
+      </div>`;
+    }).join('');
+  }).join('');
+}
+</script>
+<script>
 // ============ INLINE EDIT HELPERS (reused across sections) ============
 // Generic: editable page titles/subtitles stored in D.sectionMeta
 D.sectionMeta=D.sectionMeta||{};
@@ -1678,6 +1949,17 @@ window.exportData=(type)=>{
 
     csv+='\n=== SLEEP ===\nDATE,BEDTIME,WAKETIME,HOURS,QUALITY\n';
     Object.entries(D.sleepLog||{}).forEach(([d,e])=>{csv+=`${d},${e.bedtime||''},${e.waketime||''},${(e.hours||0).toFixed(2)},${e.quality||''}\n`;});
+
+    csv+='\n=== CLOTHES CATALOG ===\nCATEGORY,NAME,COLOUR,TAG,STATUS\n';
+    (D.clothesItems||[]).forEach(i=>{csv+=`${i.category},"${i.name}","${i.colour||''}","${i.tag||''}",${i.status||'clean'}\n`;});
+
+    csv+='\n=== WEAR HISTORY ===\nDATE,OUTFIT_NAME,ITEMS\n';
+    Object.entries(D.wearHistory||{}).forEach(([d,entries])=>{
+      entries.forEach(e=>{
+        const names=Object.values(e.items).map(id=>{const it=(D.clothesItems||[]).find(x=>x.id===id);return it?it.name:'';}).filter(Boolean);
+        csv+=`${d},"${e.name||''}","${names.join(' | ')}"\n`;
+      });
+    });
 
     csv+='\n=== DIET LOG ===\nDATE,MEAL,EATEN,CALORIES,PROTEIN,CARBS,FAT,NOTES\n';
     Object.entries(D.dietLog).forEach(([d,meals])=>{
