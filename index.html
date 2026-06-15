@@ -129,6 +129,9 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <button class="nav-item" data-page="homeworkout" onclick="navTo('homeworkout',this)"><span class="nav-icon">🏃</span>Home Workout</button>
     <button class="nav-item" data-page="diet" onclick="navTo('diet',this)"><span class="nav-icon">🍱</span>Diet</button>
     <button class="nav-item" data-page="steps" onclick="navTo('steps',this)"><span class="nav-icon">👟</span>Steps</button>
+    <button class="nav-item" data-page="boxing" onclick="navTo('boxing',this)"><span class="nav-icon">🥊</span>Boxing</button>
+    <button class="nav-item" data-page="sleep" onclick="navTo('sleep',this)"><span class="nav-icon">😴</span>Sleep</button>
+    <button class="nav-item" data-page="experimental" onclick="navTo('experimental',this)"><span class="nav-icon">🧪</span>Experimental</button>
     <div class="nav-section-label">Business</div>
     <button class="nav-item" data-page="convrt" onclick="navTo('convrt',this)"><span class="nav-icon">🚀</span>Convrt</button>
     <button class="nav-item" data-page="zomato" onclick="navTo('zomato',this)"><span class="nav-icon">🍽️</span>Zomato Internship</button>
@@ -174,13 +177,13 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-habits">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title">Daily Routine</div><div class="page-sub" id="habits-date"></div></div>
+          <div><div class="page-title" id="habits-title" contenteditable="true" onblur="saveSectionTitle('habits','title',this)">Daily Routine</div><div class="page-sub" id="habits-date"></div></div>
           <div class="flex gap-2"><button class="btn btn-sm" onclick="resetHabits()">Reset today</button><button class="btn btn-sm btn-accent" onclick="openModal('modal-add-habit')">+ Add habit</button></div>
         </div>
       </div>
       <div class="grid-2 mb-4">
-        <div class="card"><div class="flex items-center justify-between mb-3"><div class="font-semibold flex items-center gap-2">🌅 Morning <span id="morning-count" class="tag tag-green text-xs"></span></div></div><div id="morning-habits"></div></div>
-        <div class="card"><div class="flex items-center justify-between mb-3"><div class="font-semibold flex items-center gap-2">🌙 Night <span id="night-count" class="tag tag-blue text-xs"></span></div></div><div id="night-habits"></div></div>
+        <div class="card"><div class="flex items-center justify-between mb-3"><div class="font-semibold flex items-center gap-2"><span id="morning-label" contenteditable="true" onblur="renameHabitCategory('morning',this)">🌅 Morning</span> <span id="morning-count" class="tag tag-green text-xs"></span></div></div><div id="morning-habits"></div></div>
+        <div class="card"><div class="flex items-center justify-between mb-3"><div class="font-semibold flex items-center gap-2"><span id="night-label" contenteditable="true" onblur="renameHabitCategory('night',this)">🌙 Night</span> <span id="night-count" class="tag tag-blue text-xs"></span></div></div><div id="night-habits"></div></div>
       </div>
       <div class="card"><div class="font-semibold mb-3">7-day completion</div><div style="position:relative;height:200px"><canvas id="habit-chart" role="img" aria-label="7 day habit completion">Habit chart.</canvas></div></div>
     </div>
@@ -188,7 +191,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <!-- GOALS -->
     <div class="page" id="page-goals">
       <div class="page-header">
-        <div class="flex items-center justify-between"><div><div class="page-title">Goals</div><div class="page-sub">Your personal targets</div></div><button class="btn btn-sm btn-accent" onclick="openModal('modal-add-goal')">+ Add goal</button></div>
+        <div class="flex items-center justify-between"><div><div class="page-title" id="goals-title" contenteditable="true" onblur="saveSectionTitle('goals','title',this)">Goals</div><div class="page-sub" id="goals-sub" contenteditable="true" onblur="saveSectionTitle('goals','sub',this)">Your personal targets</div></div><button class="btn btn-sm btn-accent" onclick="openModal('modal-add-goal')">+ Add goal</button></div>
       </div>
       <div class="grid-3" id="goals-board"></div>
     </div>
@@ -196,7 +199,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <!-- JOURNAL -->
     <div class="page" id="page-journal">
       <div class="page-header">
-        <div class="flex items-center justify-between"><div><div class="page-title">Journal</div><div class="page-sub">Daily notes</div></div><button class="btn btn-sm btn-accent" onclick="openModal('modal-add-journal')">+ New entry</button></div>
+        <div class="flex items-center justify-between"><div><div class="page-title" id="journal-title" contenteditable="true" onblur="saveSectionTitle('journal','title',this)">Journal</div><div class="page-sub" id="journal-sub" contenteditable="true" onblur="saveSectionTitle('journal','sub',this)">Daily notes</div></div><button class="btn btn-sm btn-accent" onclick="openModal('modal-add-journal')">+ New entry</button></div>
       </div>
       <div id="journal-list"></div>
     </div>
@@ -205,7 +208,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-finance">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title">Finance</div><div class="page-sub" id="finance-month"></div></div>
+          <div><div class="page-title" id="finance-title" contenteditable="true" onblur="saveSectionTitle('finance','title',this)">Finance</div><div class="page-sub" id="finance-month"></div></div>
           <div class="flex gap-2"><button class="btn btn-sm" onclick="exportData('finance')">Export CSV</button><button class="btn btn-sm btn-accent" onclick="openModal('modal-log-finance')">+ Log entry</button></div>
         </div>
       </div>
@@ -221,7 +224,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-convrt">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title">Convrt</div><div class="page-sub">LinkedIn client acquisition agency — workstreams &amp; tasks</div></div>
+          <div><div class="page-title" id="convrt-title" contenteditable="true" onblur="saveSectionTitle('convrt','title',this)">Convrt</div><div class="page-sub" id="convrt-sub" contenteditable="true" onblur="saveSectionTitle('convrt','sub',this)">LinkedIn client acquisition agency — workstreams &amp; tasks</div></div>
           <button class="btn btn-sm btn-accent" onclick="openModal('modal-add-task')">+ Add task</button>
         </div>
       </div>
@@ -236,7 +239,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-zomato">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title">Zomato Internship</div><div class="page-sub">PM Hackathon "Safe Mode" project &amp; internship pitch</div></div>
+          <div><div class="page-title" id="zomato-title" contenteditable="true" onblur="saveSectionTitle('zomato','title',this)">Zomato Internship</div><div class="page-sub" id="zomato-sub" contenteditable="true" onblur="saveSectionTitle('zomato','sub',this)">PM Hackathon "Safe Mode" project &amp; internship pitch</div></div>
           <button class="btn btn-sm btn-accent" onclick="openModal('modal-add-zomato-task')">+ Add task</button>
         </div>
       </div>
@@ -262,7 +265,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-diet">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title">Diet</div><div class="page-sub" id="diet-day-label"></div></div>
+          <div><div class="page-title" id="diet-title" contenteditable="true" onblur="saveSectionTitle('diet','title',this)">Diet</div><div class="page-sub" id="diet-day-label"></div></div>
           <button class="btn btn-sm" onclick="openModal('modal-edit-meal')">Edit a meal</button>
         </div>
       </div>
@@ -278,7 +281,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-gym">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title">Gym</div><div class="page-sub" id="gym-day-label"></div></div>
+          <div><div class="page-title" id="gym-title" contenteditable="true" onblur="saveSectionTitle('gym','title',this)">Gym</div><div class="page-sub" id="gym-day-label"></div></div>
           <div class="flex gap-2"><span class="tag tag-purple" id="gym-phase-tag"></span></div>
         </div>
       </div>
@@ -301,7 +304,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-homeworkout">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title">Home Workout</div><div class="page-sub" id="hw-date"></div></div>
+          <div><div class="page-title" id="hw-title" contenteditable="true" onblur="saveSectionTitle('homeworkout','title',this)">Home Workout</div><div class="page-sub" id="hw-date"></div></div>
           <button class="btn btn-sm btn-accent" onclick="saveHomeWorkout()">Save session</button>
         </div>
       </div>
@@ -320,7 +323,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-steps">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title">Steps / NEAT</div><div class="page-sub" id="steps-target-label"></div></div>
+          <div><div class="page-title" id="steps-title" contenteditable="true" onblur="saveSectionTitle('steps','title',this)">Steps / NEAT</div><div class="page-sub" id="steps-target-label"></div></div>
         </div>
       </div>
       <div class="grid-3 mb-4">
@@ -336,6 +339,77 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
         <div class="font-semibold mb-3">Last 7 days</div>
         <div style="position:relative;height:200px"><canvas id="steps-chart" role="img" aria-label="Steps chart">Steps chart.</canvas></div>
       </div>
+    </div>
+
+    <!-- BOXING -->
+    <div class="page" id="page-boxing">
+      <div class="page-header">
+        <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
+          <div><div class="page-title" id="boxing-title" contenteditable="true" onblur="saveSectionTitle('boxing','title',this)">Boxing</div><div class="page-sub" id="boxing-sub" contenteditable="true" onblur="saveSectionTitle('boxing','sub',this)">Training log &amp; weekly schedule</div></div>
+          <button class="btn btn-sm" onclick="toggleBoxingRounds()" id="boxing-rounds-toggle">+ Track rounds</button>
+        </div>
+      </div>
+      <div class="day-tabs" id="boxing-day-tabs"></div>
+      <div class="card mb-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold" id="boxing-schedule-label"></div>
+          <button class="btn btn-sm btn-accent" onclick="saveBoxingSession()">Save session</button>
+        </div>
+        <div class="flex flex-col gap-3 mb-3">
+          <div><div class="label mb-1">Training type</div><input type="text" id="boxing-type" placeholder="e.g. Pad work, Bag work, Sparring, Technique drills" list="boxing-types" /><datalist id="boxing-types"><option>Pad work</option><option>Bag work</option><option>Sparring</option><option>Technique drills</option><option>Shadow boxing</option><option>Conditioning</option></datalist></div>
+          <div class="grid-2">
+            <div><div class="label mb-1">Duration (min)</div><input type="number" id="boxing-duration" min="0" placeholder="45" /></div>
+            <div id="boxing-rounds-field" style="display:none"><div class="label mb-1">Rounds</div><input type="number" id="boxing-rounds" min="0" placeholder="6" /></div>
+          </div>
+          <div><div class="label mb-1">Notes</div><textarea id="boxing-notes" rows="2" style="resize:none" placeholder="Combos worked on, how it felt, areas to improve..."></textarea></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="font-semibold mb-3">Session history</div>
+        <div id="boxing-history"></div>
+      </div>
+    </div>
+
+    <!-- SLEEP -->
+    <div class="page" id="page-sleep">
+      <div class="page-header">
+        <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
+          <div><div class="page-title" id="sleep-title" contenteditable="true" onblur="saveSectionTitle('sleep','title',this)">Sleep</div><div class="page-sub" id="sleep-date"></div></div>
+        </div>
+      </div>
+      <div class="grid-3 mb-4">
+        <div class="stat-card"><div class="label">Last night</div><div class="stat-val text-accent" id="sleep-last-hours">—</div><div class="text-sm text-muted mt-1" id="sleep-last-quality"></div></div>
+        <div class="stat-card"><div class="label">7-day average</div><div class="stat-val text-blue" id="sleep-avg-hours">—</div></div>
+        <div class="stat-card"><div class="label">Avg quality</div><div class="stat-val text-purple" id="sleep-avg-quality">—</div></div>
+      </div>
+      <div class="card mb-4">
+        <div class="label mb-2">Log last night's sleep</div>
+        <div class="grid-2 mb-3">
+          <div><div class="label mb-1">Bedtime</div><input type="time" id="sleep-bedtime" /></div>
+          <div><div class="label mb-1">Wake time</div><input type="time" id="sleep-waketime" /></div>
+        </div>
+        <div class="mb-3">
+          <div class="label mb-1">Quality (1-5)</div>
+          <div class="flex gap-2" id="sleep-quality-picker"></div>
+        </div>
+        <div class="text-sm text-muted mb-3" id="sleep-computed-hours"></div>
+        <button class="btn btn-accent" onclick="logSleep()">Save</button>
+      </div>
+      <div class="card">
+        <div class="font-semibold mb-3">Last 7 days</div>
+        <div style="position:relative;height:200px"><canvas id="sleep-chart" role="img" aria-label="Sleep hours chart">Sleep chart.</canvas></div>
+      </div>
+    </div>
+
+    <!-- EXPERIMENTAL -->
+    <div class="page" id="page-experimental">
+      <div class="page-header">
+        <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
+          <div><div class="page-title" id="experimental-title" contenteditable="true" onblur="saveSectionTitle('experimental','title',this)">Experimental</div><div class="page-sub" id="experimental-sub" contenteditable="true" onblur="saveSectionTitle('experimental','sub',this)">Gua sha, Maasai jumps, oil pulling — testing what works</div></div>
+          <button class="btn btn-sm btn-accent" onclick="addExperimentalPractice()">+ Add practice</button>
+        </div>
+      </div>
+      <div id="experimental-list"></div>
     </div>
 
     <!-- SETTINGS -->
@@ -401,7 +475,7 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="flex flex-col gap-3">
       <div><div class="label mb-1">Goal</div><input type="text" id="g-title" placeholder="e.g. Hit 10k followers" /></div>
       <div class="grid-2">
-        <div><div class="label mb-1">Area</div><select id="g-area"><option>Gym</option><option>Convrt</option><option>Finance</option><option>Diet</option><option>Life</option><option>Zomato</option></select></div>
+        <div><div class="label mb-1">Area</div><input type="text" id="g-area" list="goal-areas" placeholder="e.g. Gym, Convrt, Finance..." /><datalist id="goal-areas"><option>Gym</option><option>Convrt</option><option>Finance</option><option>Diet</option><option>Life</option><option>Zomato</option><option>Experimental</option></datalist></div>
         <div><div class="label mb-1">Deadline</div><input type="date" id="g-deadline" /></div>
       </div>
       <div><div class="label mb-1">Progress %</div><input type="number" id="g-progress" value="0" min="0" max="100" /></div>
@@ -510,6 +584,19 @@ const DEFAULTS={
   checks:{},
   focus:{},
   eod:{},
+  convrtWorkstreams:[],
+  zomatoDeliverables:[],
+  experimentalPractices:[],
+  experimentalLog:{},
+  gymSplit:null,
+  dietSlotLabels:{breakfast:'🌅 Breakfast',lunch:'☀️ Lunch',dinner:'🌙 Dinner',extra:'➕ Extra / Snack'},
+  habitCategoryLabels:{morning:'🌅 Morning',night:'🌙 Night'},
+  sectionMeta:{},
+  dietPlanOverrides:{},
+  boxingSessions:[],
+  boxingSchedule:null,
+  boxingTrackRounds:false,
+  sleepLog:{},
 };
 
 let D=load();
@@ -597,7 +684,8 @@ window.resetAllData=()=>{
 
 function renderPage(p){
   ({home:renderHome,habits:renderHabits,goals:renderGoals,journal:renderJournal,finance:renderFinance,
-    convrt:renderConvrt,zomato:renderZomato,diet:renderDiet,gym:renderGym,homeworkout:renderHomeWorkout,steps:renderSteps
+    convrt:renderConvrt,zomato:renderZomato,diet:renderDiet,gym:renderGym,homeworkout:renderHomeWorkout,steps:renderSteps,
+    boxing:renderBoxing,sleep:renderSleep,experimental:renderExperimental
   })[p]?.();
 }
 
@@ -652,8 +740,12 @@ window.saveFocus=()=>{D.focus[todayStr()]=document.getElementById('home-focus').
 window.quickCheck=id=>{const t=todayStr();D.checks[t]=D.checks[t]||{};D.checks[t][id]=!D.checks[t][id];save();renderHome();};
 
 // ============ HABITS ============
+D.habitCategoryLabels=D.habitCategoryLabels||{morning:'🌅 Morning',night:'🌙 Night'};
 function renderHabits(){
+  applySectionMeta('habits','habits-title',null,'Daily Routine','');
   document.getElementById('habits-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('morning-label').textContent=D.habitCategoryLabels.morning;
+  document.getElementById('night-label').textContent=D.habitCategoryLabels.night;
   const today=todayStr(),saved=D.checks[today]||{};
   ['morning','night'].forEach(cat=>{
     const habits=D.habits.filter(h=>h.category===cat);
@@ -663,8 +755,16 @@ function renderHabits(){
     if(!habits.length){el.innerHTML='<div class="text-muted text-sm mt-2">No habits. Click + Add habit.</div>';return;}
     el.innerHTML=habits.map(h=>`<div class="habit-item"><div class="habit-check ${saved[h.id]?'done':''}" onclick="toggleHabit('${h.id}')">${saved[h.id]?'✓':''}</div><div class="habit-label ${saved[h.id]?'done':''}">${h.name}</div><button onclick="deleteHabit('${h.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button></div>`).join('');
   });
+  // sync add-habit modal category dropdown labels
+  const sel=document.getElementById('new-habit-cat');
+  if(sel)sel.innerHTML=`<option value="morning">${D.habitCategoryLabels.morning}</option><option value="night">${D.habitCategoryLabels.night}</option>`;
   renderHabitChart();
 }
+window.renameHabitCategory=(cat,el)=>{
+  D.habitCategoryLabels[cat]=el.textContent.trim();save();
+  const sel=document.getElementById('new-habit-cat');
+  if(sel)sel.innerHTML=`<option value="morning">${D.habitCategoryLabels.morning}</option><option value="night">${D.habitCategoryLabels.night}</option>`;
+};
 window.toggleHabit=id=>{const t=todayStr();D.checks[t]=D.checks[t]||{};D.checks[t][id]=!D.checks[t][id];save();renderHabits();};
 window.resetHabits=()=>{D.checks[todayStr()]={};save();renderHabits();};
 window.addHabit=()=>{
@@ -693,6 +793,7 @@ function renderHabitChart(){
 
 // ============ GOALS ============
 function renderGoals(){
+  applySectionMeta('goals','goals-title','goals-sub','Goals','Your personal targets');
   const statuses=['Not started','In progress','Done'],colors={'Not started':'blue','In progress':'orange','Done':'green'};
   document.getElementById('goals-board').innerHTML=statuses.map(st=>{
     const goals=D.goals.filter(g=>g.status===st);
@@ -709,6 +810,7 @@ window.deleteGoal=id=>{if(!confirm('Delete this goal?'))return;D.goals=D.goals.f
 
 // ============ JOURNAL ============
 function renderJournal(){
+  applySectionMeta('journal','journal-title','journal-sub','Journal','Daily notes');
   const sorted=[...D.journals].sort((a,b)=>b.createdAt-a.createdAt);
   document.getElementById('journal-list').innerHTML=sorted.length?sorted.map(j=>`<div class="card mb-3"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span style="font-size:20px">${j.mood||'💭'}</span><div class="font-semibold">${j.title||'Entry'}</div></div><div class="flex items-center gap-2"><div class="text-xs text-dim">${fmtDate(j.date)}</div><button onclick="deleteJournal('${j.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button></div></div><div class="text-sm" style="line-height:1.7;color:var(--text2);white-space:pre-wrap">${j.body}</div></div>`).join(''):'<div class="text-muted text-sm">No journal entries yet. Start writing.</div>';
 }
@@ -721,6 +823,7 @@ window.deleteJournal=id=>{D.journals=D.journals.filter(j=>j.id!==id);save();rend
 
 // ============ FINANCE ============
 window.renderFinance=()=>{
+  applySectionMeta('finance','finance-title',null,'Finance','');
   const now=new Date();document.getElementById('finance-month').textContent=now.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
   const m=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const me=D.financeEntries.filter(e=>e.date?.startsWith(m));
@@ -748,7 +851,7 @@ window.deleteFinance=id=>{D.financeEntries=D.financeEntries.filter(e=>e.id!==id)
 </script>
 <script>
 // ============ CONVRT ============
-const CONVRT_WORKSTREAMS=['Brand identity','Notion landing page','Outreach sequences','LinkedIn content'];
+const CONVRT_DEFAULT_WORKSTREAMS=['Brand identity','Notion landing page','Outreach sequences','LinkedIn content'];
 const CONVRT_DEFAULT_TASKS={
   'Brand identity':[{name:'Logo, colours, voice & tone defined',done:true}],
   'Notion landing page':[{name:'Build core landing page structure',done:true},{name:'Add Cal.com booking link',done:false},{name:'Connect custom domain',done:false}],
@@ -756,42 +859,69 @@ const CONVRT_DEFAULT_TASKS={
   'LinkedIn content':[{name:'Define posting cadence',done:false},{name:'Build content pipeline / bank',done:false}],
 };
 function seedConvrtIfNeeded(){
-  if(D.convrtTasks.length>0)return;
-  for(const ws of CONVRT_WORKSTREAMS){
-    for(const t of CONVRT_DEFAULT_TASKS[ws]){
-      D.convrtTasks.push({id:uid(),workstream:ws,name:t.name,done:t.done,createdAt:Date.now()});
+  D.convrtWorkstreams=D.convrtWorkstreams||[];
+  if(D.convrtWorkstreams.length===0){
+    D.convrtWorkstreams=[...CONVRT_DEFAULT_WORKSTREAMS];
+    for(const ws of CONVRT_DEFAULT_WORKSTREAMS){
+      for(const t of CONVRT_DEFAULT_TASKS[ws]){
+        D.convrtTasks.push({id:uid(),workstream:ws,name:t.name,done:t.done,createdAt:Date.now()});
+      }
     }
+    save();
   }
-  save();
 }
 function renderConvrt(){
   seedConvrtIfNeeded();
+  applySectionMeta('convrt','convrt-title','convrt-sub','Convrt','LinkedIn client acquisition agency — workstreams & tasks');
   const wrap=document.getElementById('convrt-workstreams');
   const status=D.convrtStatus||{};
   const statusColors={'done':'green','in progress':'orange','blocked':'red'};
-  wrap.innerHTML=CONVRT_WORKSTREAMS.map(ws=>{
+  wrap.innerHTML=D.convrtWorkstreams.map(ws=>{
     const tasks=D.convrtTasks.filter(t=>t.workstream===ws);
     const done=tasks.filter(t=>t.done).length;
     const st=status[ws]||'in progress';
     return`<div class="card">
       <div class="flex items-center justify-between mb-2">
-        <div class="font-semibold">${ws}</div>
-        <select style="width:auto;padding:4px 10px;font-size:12px" onchange="setConvrtStatus('${ws}',this.value)">
+        <input type="text" value="${ws}" class="font-semibold" style="background:transparent;border:none;padding:2px 0;flex:1;font-size:15px" onchange="renameConvrtWorkstream('${ws.replace(/'/g,"\\'")}',this.value)" />
+        <select style="width:auto;padding:4px 10px;font-size:12px" onchange="setConvrtStatus('${ws.replace(/'/g,"\\'")}',this.value)">
           <option value="done" ${st==='done'?'selected':''}>Done</option>
           <option value="in progress" ${st==='in progress'?'selected':''}>In progress</option>
           <option value="blocked" ${st==='blocked'?'selected':''}>Blocked</option>
         </select>
+        <button onclick="deleteConvrtWorkstream('${ws.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">✕</button>
       </div>
       <div class="flex items-center gap-2 mb-2"><span class="tag tag-${statusColors[st]||'orange'} text-xs">${st}</span><span class="text-xs text-dim">${done}/${tasks.length} tasks done</span></div>
       ${tasks.length?'<div class="prog-bar mb-2"><div class="prog-fill" style="width:'+Math.round(done/tasks.length*100)+'%"></div></div>':''}
       <div>${tasks.length?tasks.map(t=>`<div class="habit-item"><div class="habit-check ${t.done?'done':''}" onclick="toggleConvrtTask('${t.id}')">${t.done?'✓':''}</div><div class="habit-label ${t.done?'done':''}">${t.name}</div><button onclick="deleteConvrtTask('${t.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button></div>`).join(''):'<div class="text-muted text-sm">No tasks yet.</div>'}</div>
     </div>`;
-  }).join('');
+  }).join('')+`<div class="card flex items-center justify-center" style="cursor:pointer;border-style:dashed;min-height:80px" onclick="addConvrtWorkstream()"><span class="text-muted text-sm">+ Add workstream</span></div>`;
   document.getElementById('convrt-notes').value=D.convrtNotes||'';
+  const sel=document.getElementById('task-workstream');
+  if(sel)sel.innerHTML=D.convrtWorkstreams.map(ws=>`<option value="${ws}">${ws}</option>`).join('');
 }
 window.toggleConvrtTask=id=>{const t=D.convrtTasks.find(t=>t.id===id);if(!t)return;t.done=!t.done;save();renderConvrt();};
 window.deleteConvrtTask=id=>{D.convrtTasks=D.convrtTasks.filter(t=>t.id!==id);save();renderConvrt();};
 window.setConvrtStatus=(ws,status)=>{D.convrtStatus=D.convrtStatus||{};D.convrtStatus[ws]=status;save();renderConvrt();};
+window.renameConvrtWorkstream=(oldName,newName)=>{
+  newName=newName.trim();if(!newName||newName===oldName)return renderConvrt();
+  const idx=D.convrtWorkstreams.indexOf(oldName);if(idx>=0)D.convrtWorkstreams[idx]=newName;
+  D.convrtTasks.forEach(t=>{if(t.workstream===oldName)t.workstream=newName;});
+  if(D.convrtStatus&&D.convrtStatus[oldName]!==undefined){D.convrtStatus[newName]=D.convrtStatus[oldName];delete D.convrtStatus[oldName];}
+  save();renderConvrt();
+};
+window.deleteConvrtWorkstream=ws=>{
+  if(!confirm(`Delete workstream "${ws}" and all its tasks?`))return;
+  D.convrtWorkstreams=D.convrtWorkstreams.filter(w=>w!==ws);
+  D.convrtTasks=D.convrtTasks.filter(t=>t.workstream!==ws);
+  if(D.convrtStatus)delete D.convrtStatus[ws];
+  save();renderConvrt();
+};
+window.addConvrtWorkstream=()=>{
+  const name=prompt('New workstream name?');if(!name)return;
+  D.convrtWorkstreams.push(name);
+  D.convrtStatus=D.convrtStatus||{};D.convrtStatus[name]='in progress';
+  save();renderConvrt();
+};
 window.addTask=()=>{
   const name=document.getElementById('task-name').value.trim();if(!name)return;
   const ws=document.getElementById('task-workstream').value;
@@ -801,7 +931,7 @@ window.addTask=()=>{
 window.saveConvrtNotes=()=>{D.convrtNotes=document.getElementById('convrt-notes').value;save();};
 
 // ============ ZOMATO INTERNSHIP ============
-const ZOMATO_DELIVERABLES=['React prototype','Case study PDF','Demo script'];
+const ZOMATO_DEFAULT_DELIVERABLES=['React prototype','Case study PDF','Demo script'];
 const ZOMATO_DEFAULT_TASKS=[
   {name:'Build core React prototype ("Safe Mode")',deliverable:'React prototype',status:'done'},
   {name:'Polish UI / fix bugs in prototype',deliverable:'React prototype',status:'in progress'},
@@ -812,30 +942,58 @@ const ZOMATO_DEFAULT_TASKS=[
   {name:'Prep internship pitch talking points',deliverable:'General',status:'not started'},
 ];
 function seedZomatoIfNeeded(){
-  if(D.zomatoTasks.length>0)return;
-  for(const t of ZOMATO_DEFAULT_TASKS){
-    D.zomatoTasks.push({id:uid(),name:t.name,deliverable:t.deliverable,status:t.status,createdAt:Date.now()});
+  D.zomatoDeliverables=D.zomatoDeliverables||[];
+  if(D.zomatoDeliverables.length===0){
+    D.zomatoDeliverables=[...ZOMATO_DEFAULT_DELIVERABLES];
+    for(const t of ZOMATO_DEFAULT_TASKS){
+      D.zomatoTasks.push({id:uid(),name:t.name,deliverable:t.deliverable,status:t.status,createdAt:Date.now()});
+    }
+    save();
   }
-  save();
 }
 function renderZomato(){
   seedZomatoIfNeeded();
+  applySectionMeta('zomato','zomato-title','zomato-sub','Zomato Internship','PM Hackathon "Safe Mode" project & internship pitch');
   const statusColors={'not started':'blue','in progress':'orange','done':'green'};
-  // deliverable summary cards
-  document.getElementById('zomato-deliverables').innerHTML=ZOMATO_DELIVERABLES.map(del=>{
+  document.getElementById('zomato-deliverables').innerHTML=D.zomatoDeliverables.map(del=>{
     const tasks=D.zomatoTasks.filter(t=>t.deliverable===del);
     const done=tasks.filter(t=>t.status==='done').length;
     const overall=tasks.length&&done===tasks.length?'done':tasks.some(t=>t.status!=='not started')?'in progress':'not started';
-    return`<div class="stat-card"><div class="label">${del}</div><div class="flex items-center gap-2 mt-1 mb-2"><span class="tag tag-${statusColors[overall]} text-xs">${overall}</span></div><div class="text-sm text-muted">${done}/${tasks.length} tasks done</div><div class="prog-bar mt-2"><div class="prog-fill" style="width:${tasks.length?Math.round(done/tasks.length*100):0}%"></div></div></div>`;
-  }).join('');
-  // task list
+    return`<div class="stat-card">
+      <div class="flex items-center justify-between mb-1">
+        <input type="text" value="${del}" class="label" style="background:transparent;border:none;padding:2px 0;width:auto;flex:1" onchange="renameZomatoDeliverable('${del.replace(/'/g,"\\'")}',this.value)" />
+        <button onclick="deleteZomatoDeliverable('${del.replace(/'/g,"\\'")}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>
+      </div>
+      <div class="flex items-center gap-2 mt-1 mb-2"><span class="tag tag-${statusColors[overall]} text-xs">${overall}</span></div>
+      <div class="text-sm text-muted">${done}/${tasks.length} tasks done</div>
+      <div class="prog-bar mt-2"><div class="prog-fill" style="width:${tasks.length?Math.round(done/tasks.length*100):0}%"></div></div>
+    </div>`;
+  }).join('')+`<div class="stat-card flex items-center justify-center" style="cursor:pointer;border-style:dashed" onclick="addZomatoDeliverable()"><span class="text-muted text-sm">+ Add deliverable</span></div>`;
   const filter=document.getElementById('zomato-status-filter').value;
   const tasks=D.zomatoTasks.filter(t=>!filter||t.status===filter);
   document.getElementById('zomato-task-list').innerHTML=tasks.length?tasks.map(t=>`<div class="flex items-center justify-between" style="padding:10px 0;border-bottom:1px solid var(--border)"><div><div class="text-sm font-medium">${t.name}</div><div class="text-xs text-dim mt-1">${t.deliverable}</div></div><div class="flex items-center gap-2"><select style="width:auto;padding:4px 10px;font-size:12px" onchange="setZomatoStatus('${t.id}',this.value)"><option value="not started" ${t.status==='not started'?'selected':''}>Not started</option><option value="in progress" ${t.status==='in progress'?'selected':''}>In progress</option><option value="done" ${t.status==='done'?'selected':''}>Done</option></select><button onclick="deleteZomatoTask('${t.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button></div></div>`).join(''):'<div class="text-muted text-sm">No tasks.</div>';
   document.getElementById('zomato-notes').value=D.zomatoNotes||'';
+  const sel=document.getElementById('zomato-task-deliverable');
+  if(sel)sel.innerHTML=D.zomatoDeliverables.map(d=>`<option value="${d}">${d}</option>`).join('')+'<option value="General">General</option>';
 }
 window.setZomatoStatus=(id,status)=>{const t=D.zomatoTasks.find(t=>t.id===id);if(t)t.status=status;save();renderZomato();};
 window.deleteZomatoTask=id=>{D.zomatoTasks=D.zomatoTasks.filter(t=>t.id!==id);save();renderZomato();};
+window.renameZomatoDeliverable=(oldName,newName)=>{
+  newName=newName.trim();if(!newName||newName===oldName)return renderZomato();
+  const idx=D.zomatoDeliverables.indexOf(oldName);if(idx>=0)D.zomatoDeliverables[idx]=newName;
+  D.zomatoTasks.forEach(t=>{if(t.deliverable===oldName)t.deliverable=newName;});
+  save();renderZomato();
+};
+window.deleteZomatoDeliverable=del=>{
+  if(!confirm(`Delete deliverable "${del}" and all its tasks?`))return;
+  D.zomatoDeliverables=D.zomatoDeliverables.filter(d=>d!==del);
+  D.zomatoTasks=D.zomatoTasks.filter(t=>t.deliverable!==del);
+  save();renderZomato();
+};
+window.addZomatoDeliverable=()=>{
+  const name=prompt('New deliverable name?');if(!name)return;
+  D.zomatoDeliverables.push(name);save();renderZomato();
+};
 window.addZomatoTask=()=>{
   const name=document.getElementById('zomato-task-name').value.trim();if(!name)return;
   const del=document.getElementById('zomato-task-deliverable').value;
@@ -901,6 +1059,7 @@ function getDietDay(){return D._dietViewDay||DAYS[(new Date().getDay()+6)%7];} /
 function setDietDay(day){D._dietViewDay=day;renderDiet();}
 
 function renderDiet(){
+  applySectionMeta('diet','diet-title',null,'Diet','');
   const viewDay=getDietDay();
   document.getElementById('diet-day-label').textContent=`Viewing: ${viewDay} (target ${dietTargetFor(viewDay).kcal} kcal)`;
   // day tabs
@@ -934,7 +1093,8 @@ function renderDiet(){
     <div class="stat-card"><div class="label">Carbs / Fat (g)</div><div class="stat-val text-purple" style="font-size:18px">${totals.carbs}<span class="text-sm text-dim">/${target.carbsMin}-${target.carbsMax}</span> · ${totals.fat}<span class="text-sm text-dim">/${target.fatMin}-${target.fatMax}</span></div></div>
   `;
 
-  const slotLabels={breakfast:'🌅 Breakfast',lunch:'☀️ Lunch',dinner:'🌙 Dinner',extra:'➕ Extra / Snack'};
+  D.dietSlotLabels=D.dietSlotLabels||{breakfast:'🌅 Breakfast',lunch:'☀️ Lunch',dinner:'🌙 Dinner',extra:'➕ Extra / Snack'};
+  const slotLabels=D.dietSlotLabels;
   document.getElementById('diet-meals').innerHTML=['breakfast','lunch','dinner','extra'].map(slot=>{
     const meal=plan[slot];
     const entry=log[slot]||{};
@@ -943,7 +1103,7 @@ function renderDiet(){
     const display=sub||meal;
     return`<div class="meal-card">
       <div class="meal-header">
-        <div class="flex items-center gap-2"><div class="habit-check ${eaten?'done':''}" onclick="toggleMealEaten('${slot}')" style="cursor:pointer">${eaten?'✓':''}</div><div class="font-medium text-sm">${slotLabels[slot]}</div>${sub?'<span class="tag tag-orange text-xs">substituted</span>':''}</div>
+        <div class="flex items-center gap-2"><div class="habit-check ${eaten?'done':''}" onclick="toggleMealEaten('${slot}')" style="cursor:pointer">${eaten?'✓':''}</div><input type="text" value="${slotLabels[slot]}" class="font-medium text-sm" style="background:transparent;border:none;padding:2px 0;width:auto;min-width:100px" onchange="renameDietSlot('${slot}',this.value)" />${sub?'<span class="tag tag-orange text-xs">substituted</span>':''}</div>
         <div class="flex gap-2">
           <button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="quickEditMeal('${viewDay}','${slot}')">Edit plan</button>
           ${sub?`<button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="clearSub('${slot}')">Clear sub</button>`:`<button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="logSub('${viewDay}','${slot}')">Log substitution</button>`}
@@ -978,6 +1138,7 @@ window.logSub=(day,slot)=>{
   save();renderDiet();
 };
 window.saveDietNotes=()=>{D.dietNotes=document.getElementById('diet-notes').value;save();};
+window.renameDietSlot=(slot,label)=>{D.dietSlotLabels=D.dietSlotLabels||{};D.dietSlotLabels[slot]=label;save();};
 
 // edit-meal modal
 window.quickEditMeal=(day,slot)=>{
@@ -1036,6 +1197,14 @@ const GYM_SPLIT={
 };
 let _gymViewDay=null,_gymCurrentExercises=null;
 
+function getGymSplit(){
+  if(!D.gymSplit){
+    D.gymSplit=JSON.parse(JSON.stringify(GYM_SPLIT));
+    save();
+  }
+  return D.gymSplit;
+}
+
 function getGymPhase(){
   const start=new Date(D.profile.cutStart||todayStr());
   const now=new Date();
@@ -1050,16 +1219,17 @@ function getGymDay(){return _gymViewDay||GYM_DAYS[(new Date().getDay()+6)%7];}
 function setGymDay(day){_gymViewDay=day;_gymCurrentExercises=null;renderGym();}
 
 function renderGym(){
+  applySectionMeta('gym','gym-title',null,'Gym','');
   const phase=getGymPhase();
   document.getElementById('gym-phase-tag').textContent=phase.label;
   const viewDay=getGymDay();
-  const split=GYM_SPLIT[viewDay];
+  const split=getGymSplit()[viewDay];
   document.getElementById('gym-day-label').textContent=`${viewDay} — ${split.type}`;
-  document.getElementById('gym-day-tabs').innerHTML=GYM_DAYS.map(d=>`<div class="day-tab ${d===viewDay?'active':''}" onclick="setGymDay('${d}')">${d.slice(0,3)}<br><span style="font-size:10px">${GYM_SPLIT[d].type}</span></div>`).join('');
-  document.getElementById('gym-split-title').textContent=`${split.type} Day`;
+  document.getElementById('gym-day-tabs').innerHTML=GYM_DAYS.map(d=>`<div class="day-tab ${d===viewDay?'active':''}" onclick="setGymDay('${d}')">${d.slice(0,3)}<br><span style="font-size:10px">${getGymSplit()[d].type}</span></div>`).join('');
+  document.getElementById('gym-split-title').innerHTML=`<input type="text" value="${split.type}" style="background:transparent;border:none;padding:2px 0;width:auto;font-size:16px;font-weight:600" onchange="renameGymDayType('${viewDay}',this.value)" /> Day`;
 
   if(split.type==='Rest'){
-    document.getElementById('gym-exercise-list').innerHTML='<div class="text-muted text-sm">Rest day. Recovery is part of the program 💤</div>';
+    document.getElementById('gym-exercise-list').innerHTML='<div class="text-muted text-sm">Rest day. Recovery is part of the program 💤</div><button class="btn btn-sm mt-3" onclick="convertRestToTrainingDay()">Make this a training day</button>';
   }else{
     if(!_gymCurrentExercises){
       // check if there's a session today for this day already
@@ -1070,6 +1240,25 @@ function renderGym(){
   }
   renderGymHistory();
 }
+window.renameGymDayType=(day,type)=>{
+  type=type.trim()||'Rest';
+  getGymSplit()[day].type=type;
+  if(type==='Rest')getGymSplit()[day].exercises=[];
+  save();renderGym();
+};
+window.convertRestToTrainingDay=()=>{
+  const viewDay=getGymDay();
+  getGymSplit()[viewDay].type='Custom';
+  getGymSplit()[viewDay].exercises=['New Exercise'];
+  save();_gymCurrentExercises=null;renderGym();
+};
+window.updateSplitExerciseTemplate=()=>{
+  // sync current session's exercise names back into the day's default template
+  const viewDay=getGymDay();
+  getGymSplit()[viewDay].exercises=_gymCurrentExercises.map(e=>e.name);
+  save();
+};
+
 
 function getPrevSession(day,exerciseName){
   const sessions=D.gymSessions.filter(s=>s.day===day&&s.date!==todayStr()).sort((a,b)=>b.date.localeCompare(a.date));
@@ -1097,16 +1286,19 @@ function renderGymExerciseRows(viewDay){
     </div>`;
   }).join('');
 }
-window.updateGymEx=(i,field,val)=>{_gymCurrentExercises[i][field]=field==='name'?val:+val||0;};
-window.removeGymEx=i=>{_gymCurrentExercises.splice(i,1);renderGymExerciseRows(getGymDay());};
-window.addGymExercise=()=>{_gymCurrentExercises.push({name:'New exercise',sets:3,reps:8,weight:0});renderGymExerciseRows(getGymDay());};
+window.updateGymEx=(i,field,val)=>{
+  _gymCurrentExercises[i][field]=field==='name'?val:+val||0;
+  if(field==='name')updateSplitExerciseTemplate();
+};
+window.removeGymEx=i=>{_gymCurrentExercises.splice(i,1);updateSplitExerciseTemplate();renderGymExerciseRows(getGymDay());};
+window.addGymExercise=()=>{_gymCurrentExercises.push({name:'New exercise',sets:3,reps:8,weight:0});updateSplitExerciseTemplate();renderGymExerciseRows(getGymDay());};
 
 window.saveGymSession=()=>{
   const viewDay=getGymDay();
-  if(GYM_SPLIT[viewDay].type==='Rest'){alert('Rest day — nothing to save.');return;}
+  if(getGymSplit()[viewDay].type==='Rest'){alert('Rest day — nothing to save.');return;}
   const today=todayStr();
   const existingIdx=D.gymSessions.findIndex(s=>s.date===today&&s.day===viewDay);
-  const entry={id:existingIdx>=0?D.gymSessions[existingIdx].id:uid(),date:today,day:viewDay,type:GYM_SPLIT[viewDay].type,exercises:JSON.parse(JSON.stringify(_gymCurrentExercises)),createdAt:Date.now()};
+  const entry={id:existingIdx>=0?D.gymSessions[existingIdx].id:uid(),date:today,day:viewDay,type:getGymSplit()[viewDay].type,exercises:JSON.parse(JSON.stringify(_gymCurrentExercises)),createdAt:Date.now()};
   if(existingIdx>=0)D.gymSessions[existingIdx]=entry;else D.gymSessions.push(entry);
   save();renderGym();
   alert('Session saved!');
@@ -1128,6 +1320,7 @@ const HW_DEFAULT_EXERCISES=[
 ];
 let _hwCurrentExercises=null;
 function renderHomeWorkout(){
+  applySectionMeta('homeworkout','hw-title',null,'Home Workout','');
   document.getElementById('hw-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
   if(!_hwCurrentExercises){
     const todaySession=D.hwSessions.find(s=>s.date===todayStr());
@@ -1167,6 +1360,7 @@ function getStepsTarget(){
   return phase==='peak'?10000:8000;
 }
 function renderSteps(){
+  applySectionMeta('steps','steps-title',null,'Steps / NEAT','');
   const target=getStepsTarget();
   document.getElementById('steps-target-label').textContent=`Target: ${target.toLocaleString()} steps/day`;
   document.getElementById('steps-target').textContent=target.toLocaleString();
@@ -1197,12 +1391,248 @@ window.logSteps=()=>{
 };
 </script>
 <script>
+// ============ BOXING ============
+const BOXING_DEFAULT_SCHEDULE={
+  Monday:'Pad work',Tuesday:'Rest',Wednesday:'Bag work',Thursday:'Sparring',Friday:'Technique drills',Saturday:'Conditioning',Sunday:'Rest'
+};
+let _boxingViewDay=null;
+function getBoxingSchedule(){
+  if(!D.boxingSchedule){D.boxingSchedule=JSON.parse(JSON.stringify(BOXING_DEFAULT_SCHEDULE));save();}
+  return D.boxingSchedule;
+}
+function getBoxingDay(){return _boxingViewDay||DAYS[(new Date().getDay()+6)%7];}
+function setBoxingDay(day){_boxingViewDay=day;renderBoxing();}
+
+function renderBoxing(){
+  applySectionMeta('boxing','boxing-title','boxing-sub','Boxing','Training log & weekly schedule');
+  D.boxingSessions=D.boxingSessions||[];
+  D.boxingTrackRounds=D.boxingTrackRounds||false;
+  document.getElementById('boxing-rounds-field').style.display=D.boxingTrackRounds?'block':'none';
+  document.getElementById('boxing-rounds-toggle').textContent=D.boxingTrackRounds?'− Hide rounds':'+ Track rounds';
+
+  const viewDay=getBoxingDay();
+  const schedule=getBoxingSchedule();
+  document.getElementById('boxing-day-tabs').innerHTML=DAYS.map(d=>`<div class="day-tab ${d===viewDay?'active':''}" onclick="setBoxingDay('${d}')">${d.slice(0,3)}</div>`).join('');
+  document.getElementById('boxing-schedule-label').innerHTML=`${viewDay}: <input type="text" value="${schedule[viewDay]}" list="boxing-types" style="background:transparent;border:none;padding:2px 0;width:auto;font-weight:600;font-size:14px;color:var(--text)" onchange="renameBoxingSchedule('${viewDay}',this.value)" />`;
+
+  // prefill form from today's session if exists, else from schedule
+  const today=todayStr();
+  const todaySession=D.boxingSessions.find(s=>s.date===today);
+  if(todaySession){
+    document.getElementById('boxing-type').value=todaySession.type;
+    document.getElementById('boxing-duration').value=todaySession.duration||'';
+    document.getElementById('boxing-rounds').value=todaySession.rounds||'';
+    document.getElementById('boxing-notes').value=todaySession.notes||'';
+  }else{
+    document.getElementById('boxing-type').value=schedule[viewDay]!=='Rest'?schedule[viewDay]:'';
+    document.getElementById('boxing-duration').value='';
+    document.getElementById('boxing-rounds').value='';
+    document.getElementById('boxing-notes').value='';
+  }
+  renderBoxingHistory();
+}
+window.renameBoxingSchedule=(day,val)=>{getBoxingSchedule()[day]=val;save();};
+window.toggleBoxingRounds=()=>{D.boxingTrackRounds=!D.boxingTrackRounds;save();renderBoxing();};
+window.saveBoxingSession=()=>{
+  const type=document.getElementById('boxing-type').value.trim();if(!type)return alert('Add a training type first.');
+  const today=todayStr();
+  const entry={
+    id:uid(),date:today,
+    type,
+    duration:+document.getElementById('boxing-duration').value||0,
+    rounds:D.boxingTrackRounds?(+document.getElementById('boxing-rounds').value||0):undefined,
+    notes:document.getElementById('boxing-notes').value,
+    createdAt:Date.now()
+  };
+  const idx=D.boxingSessions.findIndex(s=>s.date===today);
+  if(idx>=0)entry.id=D.boxingSessions[idx].id,D.boxingSessions[idx]=entry;else D.boxingSessions.push(entry);
+  save();renderBoxing();
+  alert('Session saved!');
+};
+function renderBoxingHistory(){
+  const sorted=[...D.boxingSessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
+  document.getElementById('boxing-history').innerHTML=sorted.length?sorted.map(s=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+    <div class="flex items-center justify-between mb-1">
+      <div class="text-sm font-medium">${s.type}</div>
+      <div class="flex items-center gap-2"><div class="text-xs text-dim">${fmtDate(s.date)}</div><button onclick="deleteBoxingSession('${s.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button></div>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      ${s.duration?`<span class="tag tag-green text-xs">${s.duration} min</span>`:''}
+      ${s.rounds?`<span class="tag tag-blue text-xs">${s.rounds} rounds</span>`:''}
+    </div>
+    ${s.notes?`<div class="text-xs text-dim mt-1">${s.notes}</div>`:''}
+  </div>`).join(''):'<div class="text-muted text-sm">No sessions logged yet.</div>';
+}
+window.deleteBoxingSession=id=>{D.boxingSessions=D.boxingSessions.filter(s=>s.id!==id);save();renderBoxing();};
+
+// ============ SLEEP ============
+function renderSleep(){
+  applySectionMeta('sleep','sleep-title',null,'Sleep','');
+  D.sleepLog=D.sleepLog||{};
+  document.getElementById('sleep-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+
+  // quality picker
+  const today=todayStr();
+  const todayEntry=D.sleepLog[today]||{};
+  D._sleepQuality=D._sleepQuality||todayEntry.quality||0;
+  document.getElementById('sleep-quality-picker').innerHTML=[1,2,3,4,5].map(n=>`<button class="btn btn-sm ${D._sleepQuality===n?'btn-accent':''}" onclick="setSleepQuality(${n})" style="flex:1">${n}</button>`).join('');
+
+  document.getElementById('sleep-bedtime').value=todayEntry.bedtime||'';
+  document.getElementById('sleep-waketime').value=todayEntry.waketime||'';
+  updateSleepComputedHours();
+
+  // stats
+  const sorted=Object.entries(D.sleepLog).sort((a,b)=>b[0].localeCompare(a[0]));
+  const last=sorted[0];
+  if(last){
+    document.getElementById('sleep-last-hours').textContent=last[1].hours?last[1].hours.toFixed(1)+'h':'—';
+    document.getElementById('sleep-last-quality').textContent=last[1].quality?`Quality: ${last[1].quality}/5`:'';
+  }else{
+    document.getElementById('sleep-last-hours').textContent='—';
+    document.getElementById('sleep-last-quality').textContent='';
+  }
+  // 7-day avg
+  let sumH=0,sumQ=0,countH=0,countQ=0,labels=[],dataH=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    const e=D.sleepLog[ds];
+    labels.push(d.toLocaleDateString('en-IN',{weekday:'short'}));
+    dataH.push(e?e.hours||0:0);
+    if(e&&e.hours){sumH+=e.hours;countH++;}
+    if(e&&e.quality){sumQ+=e.quality;countQ++;}
+  }
+  document.getElementById('sleep-avg-hours').textContent=countH?(sumH/countH).toFixed(1)+'h':'—';
+  document.getElementById('sleep-avg-quality').textContent=countQ?(sumQ/countQ).toFixed(1)+'/5':'—';
+
+  const ctx=document.getElementById('sleep-chart').getContext('2d');
+  if(window._slC)window._slC.destroy();
+  const ac=D.profile.accentColor||'#4ade80';
+  window._slC=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:dataH,backgroundColor:`${ac}40`,borderColor:ac,borderWidth:2,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:12,grid:{color:'rgba(128,128,128,.08)'},ticks:{color:'#9090a8',callback:v=>v+'h'}},x:{grid:{display:false},ticks:{color:'#9090a8'}}}}});
+}
+window.setSleepQuality=n=>{D._sleepQuality=n;renderSleep();};
+function updateSleepComputedHours(){
+  const bed=document.getElementById('sleep-bedtime').value;
+  const wake=document.getElementById('sleep-waketime').value;
+  const el=document.getElementById('sleep-computed-hours');
+  if(!bed||!wake){el.textContent='';return;}
+  const [bh,bm]=bed.split(':').map(Number);
+  const [wh,wm]=wake.split(':').map(Number);
+  let bedMin=bh*60+bm,wakeMin=wh*60+wm;
+  if(wakeMin<=bedMin)wakeMin+=24*60; // crossed midnight
+  const hours=(wakeMin-bedMin)/60;
+  el.textContent=`= ${hours.toFixed(1)} hours of sleep`;
+}
+document.addEventListener('change',e=>{
+  if(e.target&&(e.target.id==='sleep-bedtime'||e.target.id==='sleep-waketime'))updateSleepComputedHours();
+});
+window.logSleep=()=>{
+  const bed=document.getElementById('sleep-bedtime').value;
+  const wake=document.getElementById('sleep-waketime').value;
+  if(!bed||!wake)return alert('Add bedtime and wake time.');
+  const [bh,bm]=bed.split(':').map(Number);
+  const [wh,wm]=wake.split(':').map(Number);
+  let bedMin=bh*60+bm,wakeMin=wh*60+wm;
+  if(wakeMin<=bedMin)wakeMin+=24*60;
+  const hours=(wakeMin-bedMin)/60;
+  D.sleepLog=D.sleepLog||{};
+  D.sleepLog[todayStr()]={bedtime:bed,waketime:wake,hours,quality:D._sleepQuality||0};
+  save();renderSleep();
+};
+</script>
+<script>
+// ============ INLINE EDIT HELPERS (reused across sections) ============
+// Generic: editable page titles/subtitles stored in D.sectionMeta
+D.sectionMeta=D.sectionMeta||{};
+window.saveSectionTitle=(section,field,el)=>{
+  D.sectionMeta[section]=D.sectionMeta[section]||{};
+  D.sectionMeta[section][field]=el.textContent.trim();
+  save();
+};
+function applySectionMeta(section,titleId,subId,defaultTitle,defaultSub){
+  const meta=D.sectionMeta[section]||{};
+  const tEl=document.getElementById(titleId),sEl=document.getElementById(subId);
+  if(tEl)tEl.textContent=meta.title!==undefined?meta.title:defaultTitle;
+  if(sEl)sEl.textContent=meta.sub!==undefined?meta.sub:defaultSub;
+}
+
+// ============ EXPERIMENTAL ============
+const EXPERIMENTAL_DEFAULTS=[
+  {id:'exp1',name:'Gua Sha',unit:'minutes',defaultSets:1,defaultReps:5},
+  {id:'exp2',name:'Maasai Jumps',unit:'reps',defaultSets:3,defaultReps:20},
+  {id:'exp3',name:'Oil Pulling',unit:'minutes',defaultSets:1,defaultReps:10}
+];
+function seedExperimentalIfNeeded(){
+  D.experimentalPractices=D.experimentalPractices||[];
+  D.experimentalLog=D.experimentalLog||{};
+  if(D.experimentalPractices.length>0)return;
+  D.experimentalPractices=JSON.parse(JSON.stringify(EXPERIMENTAL_DEFAULTS));
+  save();
+}
+function renderExperimental(){
+  seedExperimentalIfNeeded();
+  applySectionMeta('experimental','experimental-title','experimental-sub','Experimental','Gua sha, Maasai jumps, oil pulling — testing what works');
+  const today=todayStr();
+  D.experimentalLog[today]=D.experimentalLog[today]||{};
+  const todayLog=D.experimentalLog[today];
+
+  document.getElementById('experimental-list').innerHTML=D.experimentalPractices.map(p=>{
+    const entry=todayLog[p.id]||{sets:p.defaultSets,reps:p.defaultReps,notes:''};
+    const history=getExperimentalHistory(p.id);
+    return`<div class="card mb-3">
+      <div class="flex items-center justify-between mb-2">
+        <input type="text" value="${p.name}" class="font-semibold" style="background:transparent;border:none;padding:2px 0;width:auto;flex:1;font-size:16px" onchange="renameExperimental('${p.id}',this.value)" />
+        <button onclick="deleteExperimental('${p.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">✕</button>
+      </div>
+      <div class="exercise-row" style="border-bottom:none;padding:6px 0">
+        <input type="number" value="${entry.sets}" min="0" onchange="updateExperimentalEntry('${p.id}','sets',this.value)" placeholder="sets" style="max-width:70px" />
+        <span class="text-dim text-xs">×</span>
+        <input type="number" value="${entry.reps}" min="0" onchange="updateExperimentalEntry('${p.id}','reps',this.value)" placeholder="${p.unit}" style="max-width:80px" />
+        <span class="text-dim text-xs">${p.unit}</span>
+        <input type="text" value="${entry.notes||''}" placeholder="notes (how it felt, technique...)" onchange="updateExperimentalEntry('${p.id}','notes',this.value)" style="flex:1;min-width:120px" />
+      </div>
+      ${history.length?`<div class="mt-2 text-xs text-dim">Recent: ${history.map(h=>`${fmtDate(h.date)} — ${h.sets}×${h.reps}`).join(' · ')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function getExperimentalHistory(practiceId){
+  const out=[];
+  Object.entries(D.experimentalLog).forEach(([date,log])=>{
+    if(date!==todayStr()&&log[practiceId])out.push({date,...log[practiceId]});
+  });
+  return out.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+}
+window.updateExperimentalEntry=(id,field,val)=>{
+  const today=todayStr();
+  D.experimentalLog[today]=D.experimentalLog[today]||{};
+  const p=D.experimentalPractices.find(p=>p.id===id);
+  D.experimentalLog[today][id]=D.experimentalLog[today][id]||{sets:p.defaultSets,reps:p.defaultReps,notes:''};
+  D.experimentalLog[today][id][field]=(field==='notes')?val:(+val||0);
+  save();
+};
+window.renameExperimental=(id,name)=>{
+  const p=D.experimentalPractices.find(p=>p.id===id);if(p)p.name=name;save();
+};
+window.deleteExperimental=id=>{
+  if(!confirm('Remove this practice?'))return;
+  D.experimentalPractices=D.experimentalPractices.filter(p=>p.id!==id);save();renderExperimental();
+};
+window.addExperimentalPractice=()=>{
+  const name=prompt('Practice name?');if(!name)return;
+  const unit=prompt('Unit (e.g. minutes, reps, sets)?','reps')||'reps';
+  D.experimentalPractices.push({id:uid(),name,unit,defaultSets:1,defaultReps:10});
+  save();renderExperimental();
+};
+</script>
+<script>
 // ============ END OF DAY ============
 function renderEOD(){
   const today=todayStr(),saved=D.checks[today]||{};
   const total=D.habits.length,done=D.habits.filter(h=>saved[h.id]).length;
   const gymToday=D.gymSessions.find(s=>s.date===today);
   const hwToday=D.hwSessions.find(s=>s.date===today);
+  const boxingToday=(D.boxingSessions||[]).find(s=>s.date===today);
+  const sleepLast=(D.sleepLog||{})[today];
   const stepsToday=D.stepsLog[today]||0;
   const target=getStepsTarget();
   const log=D.dietLog[today]||{};
@@ -1211,8 +1641,10 @@ function renderEOD(){
     <div class="eod-item"><div class="text-sm">Habits completed</div><div class="font-mono font-medium ${done===total&&total>0?'text-accent':'text-orange'}">${done}/${total}</div></div>
     <div class="eod-item"><div class="text-sm">Gym session</div><div class="font-mono font-medium ${gymToday?'text-accent':'text-dim'}">${gymToday?gymToday.type+' done':'Not logged'}</div></div>
     <div class="eod-item"><div class="text-sm">Home workout</div><div class="font-mono font-medium ${hwToday?'text-accent':'text-dim'}">${hwToday?'Done':'Not logged'}</div></div>
+    <div class="eod-item"><div class="text-sm">Boxing</div><div class="font-mono font-medium ${boxingToday?'text-accent':'text-dim'}">${boxingToday?boxingToday.type:'Not logged'}</div></div>
     <div class="eod-item"><div class="text-sm">Steps</div><div class="font-mono font-medium ${stepsToday>=target?'text-accent':'text-orange'}">${stepsToday.toLocaleString()} / ${target.toLocaleString()}</div></div>
     <div class="eod-item"><div class="text-sm">Meals logged</div><div class="font-mono font-medium">${mealsEaten}/4</div></div>
+    <div class="eod-item"><div class="text-sm">Last night's sleep</div><div class="font-mono font-medium ${sleepLast?'text-accent':'text-dim'}">${sleepLast?sleepLast.hours.toFixed(1)+'h (Q'+sleepLast.quality+'/5)':'Not logged'}</div></div>
     <div class="mt-3 text-sm text-muted">Today's focus: <span class="text-accent">${D.focus[today]||'(not set)'}</span></div>`;
   document.getElementById('eod-notes').value=D.eod[today]||'';
 }
@@ -1240,6 +1672,12 @@ window.exportData=(type)=>{
 
     csv+='\n=== STEPS ===\nDATE,STEPS\n';
     Object.entries(D.stepsLog).forEach(([d,v])=>{csv+=`${d},${v}\n`;});
+
+    csv+='\n=== BOXING SESSIONS ===\nDATE,TYPE,DURATION_MIN,ROUNDS,NOTES\n';
+    (D.boxingSessions||[]).forEach(s=>{csv+=`${s.date},"${s.type}",${s.duration||0},${s.rounds||''},"${(s.notes||'').replace(/"/g,'""')}"\n`;});
+
+    csv+='\n=== SLEEP ===\nDATE,BEDTIME,WAKETIME,HOURS,QUALITY\n';
+    Object.entries(D.sleepLog||{}).forEach(([d,e])=>{csv+=`${d},${e.bedtime||''},${e.waketime||''},${(e.hours||0).toFixed(2)},${e.quality||''}\n`;});
 
     csv+='\n=== DIET LOG ===\nDATE,MEAL,EATEN,CALORIES,PROTEIN,CARBS,FAT,NOTES\n';
     Object.entries(D.dietLog).forEach(([d,meals])=>{
