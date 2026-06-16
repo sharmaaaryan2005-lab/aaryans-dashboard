@@ -346,24 +346,15 @@ button{cursor:pointer;font-family:var(--font);border:none;outline:none}
     <div class="page" id="page-boxing">
       <div class="page-header">
         <div class="flex items-center justify-between" style="flex-wrap:wrap;gap:12px">
-          <div><div class="page-title" id="boxing-title" contenteditable="true" onblur="saveSectionTitle('boxing','title',this)">Boxing</div><div class="page-sub" id="boxing-sub" contenteditable="true" onblur="saveSectionTitle('boxing','sub',this)">Training log &amp; weekly schedule</div></div>
-          <button class="btn btn-sm" onclick="toggleBoxingRounds()" id="boxing-rounds-toggle">+ Track rounds</button>
+          <div><div class="page-title" id="boxing-title" contenteditable="true" onblur="saveSectionTitle('boxing','title',this)">Boxing</div><div class="page-sub" id="boxing-sub" contenteditable="true" onblur="saveSectionTitle('boxing','sub',this)">Bag work + shadow — Tue / Thu / Sun</div></div>
         </div>
       </div>
       <div class="day-tabs" id="boxing-day-tabs"></div>
       <div class="card mb-4">
         <div class="flex items-center justify-between mb-3">
           <div class="font-semibold" id="boxing-schedule-label"></div>
-          <button class="btn btn-sm btn-accent" onclick="saveBoxingSession()">Save session</button>
         </div>
-        <div class="flex flex-col gap-3 mb-3">
-          <div><div class="label mb-1">Training type</div><input type="text" id="boxing-type" placeholder="e.g. Pad work, Bag work, Sparring, Technique drills" list="boxing-types" /><datalist id="boxing-types"><option>Pad work</option><option>Bag work</option><option>Sparring</option><option>Technique drills</option><option>Shadow boxing</option><option>Conditioning</option></datalist></div>
-          <div class="grid-2">
-            <div><div class="label mb-1">Duration (min)</div><input type="number" id="boxing-duration" min="0" placeholder="45" /></div>
-            <div id="boxing-rounds-field" style="display:none"><div class="label mb-1">Rounds</div><input type="number" id="boxing-rounds" min="0" placeholder="6" /></div>
-          </div>
-          <div><div class="label mb-1">Notes</div><textarea id="boxing-notes" rows="2" style="resize:none" placeholder="Combos worked on, how it felt, areas to improve..."></textarea></div>
-        </div>
+        <div id="boxing-session-content"></div>
       </div>
       <div class="card">
         <div class="font-semibold mb-3">Session history</div>
@@ -653,10 +644,13 @@ const DEFAULTS={
   experimentalPractices:[],
   experimentalLog:{},
   gymSplit:null,
-  dietSlotLabels:{breakfast:'🌅 Breakfast',lunch:'☀️ Lunch',dinner:'🌙 Dinner',extra:'➕ Extra / Snack'},
+  hwSplit:null,
+  dietSlotLabels:{breakfast:'🌅 Breakfast',lunch:'☀️ Lunch',dinner:'🌙 Dinner',extra:'➕ Supplements / Extra'},
   habitCategoryLabels:{morning:'🌅 Morning',night:'🌙 Night'},
   sectionMeta:{},
   dietPlanOverrides:{},
+  waterLog:{},
+  dietSupps:{},
   boxingSessions:[],
   boxingSchedule:null,
   boxingTrackRounds:false,
@@ -1071,82 +1065,89 @@ window.saveZomatoNotes=()=>{D.zomatoNotes=document.getElementById('zomato-notes'
 </script>
 <script>
 // ============ DIET ============
-// Hardcoded weekly meal plan — Mon-Sat ~2050kcal/188p/200c/54f, Sun refeed ~2550kcal/280c
+// Exact meal plan per document
 const DIET_PLAN={
   Monday:{
-    breakfast:{desc:'4 egg whites + 2 whole eggs scramble, 60g oats with milk, 1 banana',kcal:560,protein:42,carbs:65,fat:14},
-    lunch:{desc:'200g grilled chicken breast, 150g rice, mixed sabzi, salad',kcal:650,protein:55,carbs:70,fat:12},
-    dinner:{desc:'250g paneer bhurji, 2 multigrain rotis, curd',kcal:700,protein:48,carbs:55,fat:24},
-    extra:{desc:'1 scoop whey (optional), handful almonds',kcal:140,protein:13,carbs:5,fat:4}
+    breakfast:{desc:'Masala omelette (3 eggs) + 80g oats in water + banana + 1 scoop whey',kcal:610,protein:52,carbs:68,fat:14},
+    lunch:{desc:'Moong dal + 150g rice + cucumber salad',kcal:520,protein:28,carbs:80,fat:8},
+    dinner:{desc:'Grilled chicken breast + rice + sabzi',kcal:620,protein:52,carbs:55,fat:12},
+    extra:{desc:'Supplements: 1 scoop whey + 5g creatine',kcal:120,protein:25,carbs:3,fat:1}
   },
   Tuesday:{
-    breakfast:{desc:'Greek yogurt (200g) with 40g granola, 1 scoop whey, berries',kcal:540,protein:48,carbs:55,fat:12},
-    lunch:{desc:'200g grilled fish or chicken, 150g rice, dal, salad',kcal:660,protein:52,carbs:70,fat:14},
-    dinner:{desc:'3 egg omelette + 150g cottage cheese, 2 rotis, sabzi',kcal:680,protein:50,carbs:50,fat:22},
-    extra:{desc:'Apple + peanut butter (1 tbsp)',kcal:170,protein:6,carbs:25,fat:6}
+    breakfast:{desc:'Scrambled eggs (3) + 80g oats in water + banana + 1 scoop whey',kcal:600,protein:50,carbs:67,fat:13},
+    lunch:{desc:'Rajma + 2 rotis + onion salad',kcal:530,protein:24,carbs:82,fat:9},
+    dinner:{desc:'Chicken curry + 2 rotis',kcal:620,protein:48,carbs:52,fat:18},
+    extra:{desc:'Supplements: 1 scoop whey + 5g creatine',kcal:120,protein:25,carbs:3,fat:1}
   },
   Wednesday:{
-    breakfast:{desc:'4 egg whites + 2 whole eggs, 60g oats, 1 banana',kcal:560,protein:42,carbs:65,fat:14},
-    lunch:{desc:'200g chicken tikka (grilled), 150g rice, salad, raita',kcal:660,protein:55,carbs:65,fat:16},
-    dinner:{desc:'250g rajma or chole, 2 rotis, 100g paneer, salad',kcal:690,protein:46,carbs:60,fat:22},
-    extra:{desc:'1 scoop whey + 1 fruit',kcal:160,protein:25,carbs:15,fat:1}
+    breakfast:{desc:'Boiled eggs (3) + 80g oats in milk + apple + 1 scoop whey',kcal:620,protein:50,carbs:70,fat:14},
+    lunch:{desc:'Masoor dal + 150g rice + tomato salad',kcal:510,protein:26,carbs:79,fat:7},
+    dinner:{desc:'Soybean red sauce pasta (300g cooked)',kcal:580,protein:32,carbs:72,fat:16},
+    extra:{desc:'Supplements: 1 scoop whey + 5g creatine',kcal:120,protein:25,carbs:3,fat:1}
   },
   Thursday:{
-    breakfast:{desc:'Greek yogurt (200g), 40g oats, 1 scoop whey, honey',kcal:540,protein:48,carbs:55,fat:10},
-    lunch:{desc:'200g grilled chicken, 150g rice, mixed veg curry',kcal:650,protein:55,carbs:68,fat:13},
-    dinner:{desc:'3 egg omelette + 150g paneer, 2 rotis, salad',kcal:690,protein:48,carbs:48,fat:24},
-    extra:{desc:'Almonds (15) + 1 fruit',kcal:170,protein:6,carbs:24,fat:8}
+    breakfast:{desc:'Masala omelette (3 eggs) + 80g oats in water + banana + 1 scoop whey',kcal:610,protein:52,carbs:68,fat:14},
+    lunch:{desc:'Chole + 2 rotis + onion + chilli',kcal:540,protein:24,carbs:84,fat:10},
+    dinner:{desc:'Grilled chicken breast + rice + dal',kcal:630,protein:54,carbs:57,fat:12},
+    extra:{desc:'Supplements: 1 scoop whey + 5g creatine',kcal:120,protein:25,carbs:3,fat:1}
   },
   Friday:{
-    breakfast:{desc:'4 egg whites + 2 whole eggs, 60g oats, banana',kcal:560,protein:42,carbs:65,fat:14},
-    lunch:{desc:'200g fish curry, 150g rice, salad',kcal:650,protein:50,carbs:70,fat:15},
-    dinner:{desc:'250g chicken breast (grilled), 2 rotis, dal, sabzi',kcal:690,protein:55,carbs:50,fat:18},
-    extra:{desc:'1 scoop whey + apple',kcal:150,protein:25,carbs:15,fat:1}
+    breakfast:{desc:'Scrambled eggs (3) + 80g oats in milk + banana + 1 scoop whey',kcal:615,protein:51,carbs:69,fat:14},
+    lunch:{desc:'Dal tadka + 150g rice + cucumber salad',kcal:510,protein:25,carbs:78,fat:8},
+    dinner:{desc:'Grilled salmon + rice + sabzi',kcal:640,protein:52,carbs:54,fat:20},
+    extra:{desc:'Supplements: 1 scoop whey + 5g creatine',kcal:120,protein:25,carbs:3,fat:1}
   },
   Saturday:{
-    breakfast:{desc:'Veg/egg paratha (2) with curd, 1 boiled egg',kcal:560,protein:30,carbs:60,fat:20},
-    lunch:{desc:'200g grilled chicken, 150g rice, sabzi, salad',kcal:650,protein:55,carbs:68,fat:13},
-    dinner:{desc:'250g paneer tikka, 2 rotis, dal',kcal:680,protein:48,carbs:52,fat:22},
-    extra:{desc:'1 scoop whey + nuts',kcal:160,protein:25,carbs:15,fat:5}
+    breakfast:{desc:'Boiled eggs (3) + 80g oats in water + orange + 1 scoop whey',kcal:590,protein:49,carbs:66,fat:12},
+    lunch:{desc:'Rajma + 2 rotis + salad',kcal:530,protein:24,carbs:82,fat:9},
+    dinner:{desc:'Paneer bhurji (dry) + 2 rotis + dal',kcal:650,protein:38,carbs:56,fat:24},
+    extra:{desc:'Supplements: 1 scoop whey + 5g creatine',kcal:120,protein:25,carbs:3,fat:1}
   },
   Sunday:{
-    breakfast:{desc:'REFEED — pancakes/dosa with extra rice/potatoes, 3 eggs, fruit bowl',kcal:750,protein:45,carbs:110,fat:18},
-    lunch:{desc:'REFEED — 200g chicken/paneer, 250g rice, extra carbs (naan/roti), dessert portion',kcal:900,protein:55,carbs:110,fat:22},
-    dinner:{desc:'REFEED — pasta or biryani (large portion), salad, curd',kcal:750,protein:50,carbs:95,fat:18},
-    extra:{desc:'1 scoop whey + treat (small)',kcal:150,protein:25,carbs:15,fat:2}
+    breakfast:{desc:'Masala omelette (3 eggs) + 80g oats in water + banana + 1 scoop whey',kcal:610,protein:52,carbs:68,fat:14},
+    lunch:{desc:'Mixed dal + 150g rice + whatever\'s made',kcal:520,protein:26,carbs:80,fat:8},
+    dinner:{desc:'REFEED — Flex (outside order or dal-chawal, extra carbs)',kcal:820,protein:40,carbs:130,fat:22},
+    extra:{desc:'REFEED DAY — extra carbs allowed. Supplements: whey + creatine',kcal:120,protein:25,carbs:3,fat:1}
   }
 };
+
 const DIET_TARGETS={
-  weekday:{kcal:2050,protein:188,carbsMin:195,carbsMax:210,fatMin:52,fatMax:56},
-  Sunday:{kcal:2550,protein:188,carbsMin:280,carbsMax:280,fatMin:52,fatMax:56}
+  weekday:{kcal:2050,protein:188,carbs:200,fat:55,water:3500},
+  Sunday:{kcal:2550,protein:188,carbs:280,fat:55,water:3500}
 };
 function dietTargetFor(day){return day==='Sunday'?DIET_TARGETS.Sunday:DIET_TARGETS.weekday;}
 
-function getDietDay(){return D._dietViewDay||DAYS[(new Date().getDay()+6)%7];} // map JS Sun=0 -> our index
+function getDietDay(){
+  if(D._dietViewDay)return D._dietViewDay;
+  return DAYS[(new Date().getDay()+6)%7];
+}
 function setDietDay(day){D._dietViewDay=day;renderDiet();}
 
 function renderDiet(){
   applySectionMeta('diet','diet-title',null,'Diet','');
   const viewDay=getDietDay();
-  document.getElementById('diet-day-label').textContent=`Viewing: ${viewDay} (target ${dietTargetFor(viewDay).kcal} kcal)`;
-  // day tabs
-  document.getElementById('diet-day-tabs').innerHTML=DAYS.map(d=>`<div class="day-tab ${d===viewDay?'active':''}" onclick="setDietDay('${d}')">${d.slice(0,3)}</div>`).join('');
-
-  const plan=DIET_PLAN[viewDay];
   const target=dietTargetFor(viewDay);
-  const dateKey=`${viewDay}`; // log keyed by day-of-week name (template adherence), per-date log also tracked
+  const isRefeed=viewDay==='Sunday';
+  document.getElementById('diet-day-label').textContent=`${viewDay} — target ${target.kcal} kcal${isRefeed?' 🔁 REFEED':''}`;
+
+  // day tabs
+  document.getElementById('diet-day-tabs').innerHTML=DAYS.map(d=>`<div class="day-tab ${d===viewDay?'active':''}" onclick="setDietDay('${d}')">${d.slice(0,3)}${d==='Sunday'?' 🔁':''}</div>`).join('');
+
   const todayKey=todayStr();
   D.dietLog[todayKey]=D.dietLog[todayKey]||{};
   const log=D.dietLog[todayKey];
+  D.dietSupps=D.dietSupps||{};
+  D.dietSupps[todayKey]=D.dietSupps[todayKey]||{whey:false,creatine:false};
+  D.waterLog=D.waterLog||{};
+  D.waterLog[todayKey]=D.waterLog[todayKey]||0;
 
-  // compute totals
+  // compute totals from checked meals
   let totals={kcal:0,protein:0,carbs:0,fat:0};
   ['breakfast','lunch','dinner','extra'].forEach(slot=>{
-    const meal=plan[slot];
-    const entry=log[slot];
-    const eaten=entry?entry.eaten:false;
+    const meal=DIET_PLAN[viewDay][slot];
+    const entry=log[slot]||{};
     const used=(entry&&entry.sub)?entry.sub:meal;
-    if(eaten){
+    if(entry&&entry.eaten){
       totals.kcal+=Number(used.kcal)||0;
       totals.protein+=Number(used.protein)||0;
       totals.carbs+=Number(used.carbs)||0;
@@ -1154,32 +1155,79 @@ function renderDiet(){
     }
   });
 
+  // macro summary cards
+  const macroBar=(val,max)=>`<div class="prog-bar mt-1"><div class="prog-fill" style="width:${Math.min(100,Math.round(val/max*100))}%;background:${val>=max?'var(--accent)':'var(--accent)'}"></div></div>`;
   document.getElementById('diet-macro-summary').innerHTML=`
-    <div class="stat-card"><div class="label">Calories</div><div class="stat-val text-accent">${totals.kcal}<span class="text-sm text-dim"> / ${target.kcal}</span></div><div class="prog-bar mt-2"><div class="prog-fill" style="width:${Math.min(100,Math.round(totals.kcal/target.kcal*100))}%"></div></div></div>
-    <div class="stat-card"><div class="label">Protein (g)</div><div class="stat-val text-blue">${totals.protein}<span class="text-sm text-dim"> / ${target.protein}</span></div><div class="prog-bar mt-2"><div class="prog-fill" style="width:${Math.min(100,Math.round(totals.protein/target.protein*100))}%"></div></div></div>
-    <div class="stat-card"><div class="label">Carbs / Fat (g)</div><div class="stat-val text-purple" style="font-size:18px">${totals.carbs}<span class="text-sm text-dim">/${target.carbsMin}-${target.carbsMax}</span> · ${totals.fat}<span class="text-sm text-dim">/${target.fatMin}-${target.fatMax}</span></div></div>
-  `;
+    <div class="stat-card">
+      <div class="label">Calories</div>
+      <div class="stat-val ${totals.kcal>=target.kcal?'text-accent':'text-orange'}">${totals.kcal}<span class="text-sm text-dim"> / ${target.kcal}</span></div>
+      ${macroBar(totals.kcal,target.kcal)}
+    </div>
+    <div class="stat-card">
+      <div class="label">Protein (g)</div>
+      <div class="stat-val ${totals.protein>=target.protein?'text-accent':'text-blue'}">${totals.protein}<span class="text-sm text-dim"> / ${target.protein}</span></div>
+      ${macroBar(totals.protein,target.protein)}
+    </div>
+    <div class="stat-card">
+      <div class="label">Carbs / Fat (g)</div>
+      <div class="stat-val text-purple" style="font-size:20px">${totals.carbs}<span class="text-sm text-dim">/${target.carbs}</span> · ${totals.fat}<span class="text-sm text-dim">/${target.fat}</span></div>
+      ${macroBar(totals.carbs,target.carbs)}
+    </div>`;
 
-  D.dietSlotLabels=D.dietSlotLabels||{breakfast:'🌅 Breakfast',lunch:'☀️ Lunch',dinner:'🌙 Dinner',extra:'➕ Extra / Snack'};
+  // water tracker
+  const waterMl=D.waterLog[todayKey];
+  const waterPct=Math.min(100,Math.round(waterMl/target.water*100));
+  const supps=D.dietSupps[todayKey];
+
+  // render meals
+  D.dietSlotLabels=D.dietSlotLabels||{breakfast:'🌅 Breakfast',lunch:'☀️ Lunch',dinner:'🌙 Dinner',extra:'➕ Supplements / Extra'};
   const slotLabels=D.dietSlotLabels;
   document.getElementById('diet-meals').innerHTML=['breakfast','lunch','dinner','extra'].map(slot=>{
-    const meal=plan[slot];
+    const meal=DIET_PLAN[viewDay][slot];
     const entry=log[slot]||{};
     const eaten=entry.eaten||false;
     const sub=entry.sub;
     const display=sub||meal;
     return`<div class="meal-card">
       <div class="meal-header">
-        <div class="flex items-center gap-2"><div class="habit-check ${eaten?'done':''}" onclick="toggleMealEaten('${slot}')" style="cursor:pointer">${eaten?'✓':''}</div><input type="text" value="${slotLabels[slot]}" class="font-medium text-sm" style="background:transparent;border:none;padding:2px 0;width:auto;min-width:100px" onchange="renameDietSlot('${slot}',this.value)" />${sub?'<span class="tag tag-orange text-xs">substituted</span>':''}</div>
+        <div class="flex items-center gap-2">
+          <div class="habit-check ${eaten?'done':''}" onclick="toggleMealEaten('${slot}')" style="cursor:pointer">${eaten?'✓':''}</div>
+          <input type="text" value="${slotLabels[slot]}" class="font-medium text-sm" style="background:transparent;border:none;padding:2px 0;width:auto;min-width:120px" onchange="renameDietSlot('${slot}',this.value)" />
+          ${sub?'<span class="tag tag-orange text-xs">substituted</span>':''}
+        </div>
         <div class="flex gap-2">
           <button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="quickEditMeal('${viewDay}','${slot}')">Edit plan</button>
-          ${sub?`<button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="clearSub('${slot}')">Clear sub</button>`:`<button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="logSub('${viewDay}','${slot}')">Log substitution</button>`}
+          ${sub?`<button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="clearSub('${slot}')">Clear sub</button>`:`<button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="logSub('${viewDay}','${slot}')">Log sub</button>`}
         </div>
       </div>
       <div class="text-sm text-muted mb-1">${display.desc}</div>
       <div class="macro-pill"><span>${display.kcal} kcal</span><span>P ${display.protein}g</span><span>C ${display.carbs}g</span><span>F ${display.fat}g</span></div>
     </div>`;
   }).join('');
+
+  // water + supps tracker
+  document.getElementById('diet-meals').innerHTML+=`
+    <div class="card mt-4">
+      <div class="font-semibold mb-3">Daily essentials</div>
+      <div class="grid-2">
+        <div>
+          <div class="label mb-2">💧 Water — ${waterMl}ml / ${target.water}ml</div>
+          <div class="prog-bar mb-2"><div class="prog-fill" style="width:${waterPct}%"></div></div>
+          <div class="flex gap-2" style="flex-wrap:wrap">
+            ${[250,500,750,1000].map(ml=>`<button class="btn btn-sm" onclick="addWater(${ml})">+${ml}ml</button>`).join('')}
+            <button class="btn btn-sm btn-danger" onclick="resetWater()">Reset</button>
+          </div>
+        </div>
+        <div>
+          <div class="label mb-2">Supplements</div>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2"><div class="habit-check ${supps.whey?'done':''}" onclick="toggleSupp('whey')" style="cursor:pointer">${supps.whey?'✓':''}</div><span class="text-sm">1 scoop whey</span></div>
+            <div class="flex items-center gap-2"><div class="habit-check ${supps.creatine?'done':''}" onclick="toggleSupp('creatine')" style="cursor:pointer">${supps.creatine?'✓':''}</div><span class="text-sm">5g creatine</span></div>
+            <div class="flex items-center gap-2"><div class="habit-check ${log.sugar_free?'done':''}" onclick="toggleDietCheck('sugar_free')" style="cursor:pointer">${log.sugar_free?'✓':''}</div><span class="text-sm">Zero sugar today ✊</span></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
 
   document.getElementById('diet-notes').value=D.dietNotes||'';
 }
@@ -1190,15 +1238,28 @@ window.toggleMealEaten=slot=>{
   D.dietLog[t][slot].eaten=!D.dietLog[t][slot].eaten;
   save();renderDiet();
 };
+window.toggleSupp=supp=>{
+  const t=todayStr();D.dietSupps=D.dietSupps||{};D.dietSupps[t]=D.dietSupps[t]||{whey:false,creatine:false};
+  D.dietSupps[t][supp]=!D.dietSupps[t][supp];save();renderDiet();
+};
+window.toggleDietCheck=field=>{
+  const t=todayStr();D.dietLog[t]=D.dietLog[t]||{};
+  D.dietLog[t][field]=!D.dietLog[t][field];save();renderDiet();
+};
+window.addWater=ml=>{
+  const t=todayStr();D.waterLog=D.waterLog||{};D.waterLog[t]=(D.waterLog[t]||0)+ml;
+  save();renderDiet();
+};
+window.resetWater=()=>{const t=todayStr();D.waterLog=D.waterLog||{};D.waterLog[t]=0;save();renderDiet();};
 window.clearSub=slot=>{
   const t=todayStr();if(D.dietLog[t]&&D.dietLog[t][slot]){delete D.dietLog[t][slot].sub;save();renderDiet();}
 };
 window.logSub=(day,slot)=>{
-  const desc=prompt('What did you actually eat?');if(!desc)return;
-  const kcal=+prompt('Calories?',0)||0;
-  const protein=+prompt('Protein (g)?',0)||0;
-  const carbs=+prompt('Carbs (g)?',0)||0;
-  const fat=+prompt('Fat (g)?',0)||0;
+  const desc=prompt('What did you eat instead?');if(!desc)return;
+  const kcal=+prompt('Calories?','0')||0;
+  const protein=+prompt('Protein (g)?','0')||0;
+  const carbs=+prompt('Carbs (g)?','0')||0;
+  const fat=+prompt('Fat (g)?','0')||0;
   const t=todayStr();D.dietLog[t]=D.dietLog[t]||{};D.dietLog[t][slot]=D.dietLog[t][slot]||{};
   D.dietLog[t][slot].sub={desc,kcal,protein,carbs,fat};
   D.dietLog[t][slot].eaten=true;
@@ -1207,7 +1268,7 @@ window.logSub=(day,slot)=>{
 window.saveDietNotes=()=>{D.dietNotes=document.getElementById('diet-notes').value;save();};
 window.renameDietSlot=(slot,label)=>{D.dietSlotLabels=D.dietSlotLabels||{};D.dietSlotLabels[slot]=label;save();};
 
-// edit-meal modal
+// edit-meal modal helpers
 window.quickEditMeal=(day,slot)=>{
   document.getElementById('meal-day').value=day;
   document.getElementById('meal-slot').value=slot;
@@ -1215,7 +1276,6 @@ window.quickEditMeal=(day,slot)=>{
   openModal('modal-edit-meal');
 };
 function populateMealModal(){
-  // build day options if empty
   const daySel=document.getElementById('meal-day');
   if(!daySel.options.length)daySel.innerHTML=DAYS.map(d=>`<option value="${d}">${d}</option>`).join('');
   const day=daySel.value||getDietDay();
@@ -1227,13 +1287,27 @@ function populateMealModal(){
   document.getElementById('meal-protein').value=meal.protein;
   document.getElementById('meal-carbs').value=meal.carbs;
   document.getElementById('meal-fat').value=meal.fat;
-  daySel.onchange=()=>{const m=DIET_PLAN[daySel.value][document.getElementById('meal-slot').value];document.getElementById('meal-desc').value=m.desc;document.getElementById('meal-kcal').value=m.kcal;document.getElementById('meal-protein').value=m.protein;document.getElementById('meal-carbs').value=m.carbs;document.getElementById('meal-fat').value=m.fat;};
-  document.getElementById('meal-slot').onchange=daySel.onchange;
+  const refresh=()=>{
+    const m=DIET_PLAN[daySel.value][document.getElementById('meal-slot').value];
+    document.getElementById('meal-desc').value=m.desc;
+    document.getElementById('meal-kcal').value=m.kcal;
+    document.getElementById('meal-protein').value=m.protein;
+    document.getElementById('meal-carbs').value=m.carbs;
+    document.getElementById('meal-fat').value=m.fat;
+  };
+  daySel.onchange=refresh;
+  document.getElementById('meal-slot').onchange=refresh;
 }
 window.saveMealEdit=()=>{
   const day=document.getElementById('meal-day').value;
   const slot=document.getElementById('meal-slot').value;
-  DIET_PLAN[day][slot]={desc:document.getElementById('meal-desc').value,kcal:+document.getElementById('meal-kcal').value||0,protein:+document.getElementById('meal-protein').value||0,carbs:+document.getElementById('meal-carbs').value||0,fat:+document.getElementById('meal-fat').value||0};
+  DIET_PLAN[day][slot]={
+    desc:document.getElementById('meal-desc').value,
+    kcal:+document.getElementById('meal-kcal').value||0,
+    protein:+document.getElementById('meal-protein').value||0,
+    carbs:+document.getElementById('meal-carbs').value||0,
+    fat:+document.getElementById('meal-fat').value||0
+  };
   D.dietPlanOverrides=D.dietPlanOverrides||{};
   D.dietPlanOverrides[day]=D.dietPlanOverrides[day]||{};
   D.dietPlanOverrides[day][slot]=DIET_PLAN[day][slot];
@@ -1251,37 +1325,81 @@ window.saveMealEdit=()=>{
 })();
 </script>
 <script>
-// ============ GYM (WEIGHTS) — 5-day split ============
+// ============ GYM (WEIGHTS) — exact 4-day split ============
 const GYM_DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const GYM_SPLIT={
-  Monday:{type:'Upper',exercises:['Barbell Bench Press','Barbell Row','Overhead Press','Lat Pulldown','Incline Dumbbell Press','Face Pulls']},
-  Tuesday:{type:'Lower',exercises:['Back Squat','Romanian Deadlift','Leg Press','Walking Lunges','Standing Calf Raise']},
-  Wednesday:{type:'Rest',exercises:[]},
-  Thursday:{type:'Push',exercises:['Incline Barbell Press','Overhead Dumbbell Press','Dips','Lateral Raises','Triceps Pushdown']},
-  Friday:{type:'Pull',exercises:['Deadlift','Pull-ups','Seated Cable Row','Barbell Curl','Rear Delt Fly']},
-  Saturday:{type:'Legs',exercises:['Front Squat','Leg Curl','Bulgarian Split Squat','Hip Thrust','Seated Calf Raise']},
-  Sunday:{type:'Rest',exercises:[]}
+const GYM_SPLIT_DEFAULT={
+  Monday:{
+    type:'Upper A (Strength)',
+    exercises:[
+      {name:'Barbell Bench Press',sets:4,reps:'5'},
+      {name:'Barbell Row',sets:4,reps:'5'},
+      {name:'Overhead Press',sets:4,reps:'6-8'},
+      {name:'Pull-Ups',sets:4,reps:'6-8'},
+      {name:'Incline DB Curl',sets:3,reps:'10-12'},
+      {name:'Tricep Pushdown',sets:3,reps:'10-12'},
+    ],
+    cardio:'20 min incline treadmill walk post-session'
+  },
+  Tuesday:{type:'Rest / Home Workout',exercises:[],cardio:''},
+  Wednesday:{
+    type:'Upper B (Volume)',
+    exercises:[
+      {name:'Incline DB Press',sets:4,reps:'10-12'},
+      {name:'Seated Cable Row',sets:4,reps:'10-12'},
+      {name:'DB Lateral Raises',sets:4,reps:'12-15'},
+      {name:'Face Pulls',sets:3,reps:'15'},
+      {name:'Hammer Curls',sets:3,reps:'12'},
+      {name:'Overhead Tricep Extension',sets:3,reps:'12'},
+      {name:'Cable Crunch',sets:3,reps:'15'},
+    ],
+    cardio:'20 min stairmaster post-session'
+  },
+  Thursday:{type:'Rest / Home Workout',exercises:[],cardio:''},
+  Friday:{
+    type:'Legs',
+    exercises:[
+      {name:'Back Squat',sets:4,reps:'5'},
+      {name:'Romanian Deadlift',sets:4,reps:'8'},
+      {name:'Leg Press',sets:3,reps:'12'},
+      {name:'Hack Squat / Leg Extension',sets:3,reps:'12'},
+      {name:'Lying Leg Curl',sets:3,reps:'12'},
+      {name:'Walking Lunges',sets:3,reps:'12 each'},
+      {name:'Standing Calf Raises',sets:4,reps:'15'},
+    ],
+    cardio:'20 min bike (low resistance) post-session'
+  },
+  Saturday:{
+    type:'Pull + Arms',
+    exercises:[
+      {name:'Deadlift',sets:4,reps:'5'},
+      {name:'Lat Pulldown',sets:4,reps:'10-12'},
+      {name:'Single Arm DB Row',sets:3,reps:'10-12'},
+      {name:'Cable Face Pull',sets:3,reps:'15'},
+      {name:'Barbell Curl',sets:4,reps:'8-10'},
+      {name:'Incline DB Curl',sets:3,reps:'12'},
+      {name:'Skull Crushers',sets:3,reps:'10-12'},
+      {name:'Hanging Leg Raises',sets:3,reps:'12'},
+    ],
+    cardio:'25 min incline treadmill or stairmaster post-session'
+  },
+  Sunday:{type:'Rest',exercises:[],cardio:''}
 };
+
 let _gymViewDay=null,_gymCurrentExercises=null;
 
 function getGymSplit(){
-  if(!D.gymSplit){
-    D.gymSplit=JSON.parse(JSON.stringify(GYM_SPLIT));
-    save();
-  }
+  if(!D.gymSplit){D.gymSplit=JSON.parse(JSON.stringify(GYM_SPLIT_DEFAULT));save();}
   return D.gymSplit;
 }
-
 function getGymPhase(){
   const start=new Date(D.profile.cutStart||todayStr());
   const now=new Date();
-  const diffWeeks=Math.floor((now-start)/(1000*60*60*24*7))+1;
-  if(diffWeeks<=4)return{label:`Week ${diffWeeks} · Foundation (Wk1-4)`,phase:'foundation'};
-  if(diffWeeks<=8)return{label:`Week ${diffWeeks} · Volume (Wk5-8)`,phase:'volume'};
-  if(diffWeeks<=12)return{label:`Week ${diffWeeks} · Peak (Wk9-12)`,phase:'peak'};
-  return{label:`Week ${diffWeeks} · Post-cut`,phase:'done'};
+  const w=Math.max(1,Math.floor((now-start)/(1000*60*60*24*7))+1);
+  if(w<=4)return{label:`Week ${w} · Foundation (Wk 1-4)`,phase:'foundation',color:'tag-blue'};
+  if(w<=8)return{label:`Week ${w} · Volume (Wk 5-8)`,phase:'volume',color:'tag-orange'};
+  if(w<=12)return{label:`Week ${w} · Peak (Wk 9-12)`,phase:'peak',color:'tag-green'};
+  return{label:`Week ${w} · Post-cut`,phase:'done',color:'tag-purple'};
 }
-
 function getGymDay(){return _gymViewDay||GYM_DAYS[(new Date().getDay()+6)%7];}
 function setGymDay(day){_gymViewDay=day;_gymCurrentExercises=null;renderGym();}
 
@@ -1289,154 +1407,196 @@ function renderGym(){
   applySectionMeta('gym','gym-title',null,'Gym','');
   const phase=getGymPhase();
   document.getElementById('gym-phase-tag').textContent=phase.label;
+  document.getElementById('gym-phase-tag').className=`tag ${phase.color}`;
   const viewDay=getGymDay();
   const split=getGymSplit()[viewDay];
   document.getElementById('gym-day-label').textContent=`${viewDay} — ${split.type}`;
-  document.getElementById('gym-day-tabs').innerHTML=GYM_DAYS.map(d=>`<div class="day-tab ${d===viewDay?'active':''}" onclick="setGymDay('${d}')">${d.slice(0,3)}<br><span style="font-size:10px">${getGymSplit()[d].type}</span></div>`).join('');
-  document.getElementById('gym-split-title').innerHTML=`<input type="text" value="${split.type}" style="background:transparent;border:none;padding:2px 0;width:auto;font-size:16px;font-weight:600" onchange="renameGymDayType('${viewDay}',this.value)" /> Day`;
+  document.getElementById('gym-day-tabs').innerHTML=GYM_DAYS.map(d=>{
+    const s=getGymSplit()[d];
+    const isRest=s.type.includes('Rest');
+    return`<div class="day-tab ${d===viewDay?'active':''}" onclick="setGymDay('${d}')">${d.slice(0,3)}<br><span style="font-size:10px;color:${isRest?'var(--text3)':'inherit'}">${s.type.split(' ')[0]}</span></div>`;
+  }).join('');
+  document.getElementById('gym-split-title').innerHTML=`<input type="text" value="${split.type}" style="background:transparent;border:none;padding:2px 0;font-size:16px;font-weight:600;color:var(--text);width:100%" onchange="renameGymDayType('${viewDay}',this.value)" />`;
 
-  if(split.type==='Rest'){
-    document.getElementById('gym-exercise-list').innerHTML='<div class="text-muted text-sm">Rest day. Recovery is part of the program 💤</div><button class="btn btn-sm mt-3" onclick="convertRestToTrainingDay()">Make this a training day</button>';
+  const isRest=split.type.includes('Rest');
+  if(isRest){
+    document.getElementById('gym-exercise-list').innerHTML=`<div class="text-muted text-sm">Rest day 💤</div><button class="btn btn-sm mt-3" onclick="convertRestToTrainingDay()">Make this a training day</button>`;
   }else{
     if(!_gymCurrentExercises){
-      // check if there's a session today for this day already
-      const todaySession=D.gymSessions.find(s=>s.date===todayStr()&&s.day===viewDay);
-      _gymCurrentExercises=todaySession?JSON.parse(JSON.stringify(todaySession.exercises)):split.exercises.map(name=>({name,sets:3,reps:8,weight:0}));
+      const todaySesh=D.gymSessions.find(s=>s.date===todayStr()&&s.day===viewDay);
+      _gymCurrentExercises=todaySesh
+        ?JSON.parse(JSON.stringify(todaySesh.exercises))
+        :split.exercises.map(e=>({name:e.name,sets:e.sets,reps:e.reps,weight:0,targetReps:e.reps}));
+    }
+    // cardio note
+    if(split.cardio){
+      document.getElementById('gym-exercise-list').innerHTML=`<div class="card-sm mb-3 flex items-center gap-2"><span class="text-orange" style="font-size:16px">🏃</span><span class="text-sm">${split.cardio}</span></div>`;
+    }else{
+      document.getElementById('gym-exercise-list').innerHTML='';
     }
     renderGymExerciseRows(viewDay);
   }
   renderGymHistory();
 }
-window.renameGymDayType=(day,type)=>{
-  type=type.trim()||'Rest';
-  getGymSplit()[day].type=type;
-  if(type==='Rest')getGymSplit()[day].exercises=[];
-  save();renderGym();
-};
+
+window.renameGymDayType=(day,type)=>{getGymSplit()[day].type=type;save();renderGym();};
 window.convertRestToTrainingDay=()=>{
   const viewDay=getGymDay();
   getGymSplit()[viewDay].type='Custom';
-  getGymSplit()[viewDay].exercises=['New Exercise'];
+  getGymSplit()[viewDay].exercises=[{name:'New exercise',sets:3,reps:'10',weight:0}];
   save();_gymCurrentExercises=null;renderGym();
 };
 window.updateSplitExerciseTemplate=()=>{
-  // sync current session's exercise names back into the day's default template
   const viewDay=getGymDay();
-  getGymSplit()[viewDay].exercises=_gymCurrentExercises.map(e=>e.name);
+  getGymSplit()[viewDay].exercises=_gymCurrentExercises.map(e=>({name:e.name,sets:e.sets,reps:e.reps}));
   save();
 };
 
-
 function getPrevSession(day,exerciseName){
   const sessions=D.gymSessions.filter(s=>s.day===day&&s.date!==todayStr()).sort((a,b)=>b.date.localeCompare(a.date));
-  for(const s of sessions){
-    const ex=s.exercises.find(e=>e.name===exerciseName);
-    if(ex)return ex;
-  }
+  for(const s of sessions){const ex=s.exercises.find(e=>e.name===exerciseName);if(ex)return ex;}
   return null;
 }
 
 function renderGymExerciseRows(viewDay){
-  document.getElementById('gym-exercise-list').innerHTML=_gymCurrentExercises.map((ex,i)=>{
+  const existing=document.getElementById('gym-exercise-list').innerHTML;
+  document.getElementById('gym-exercise-list').innerHTML=existing+_gymCurrentExercises.map((ex,i)=>{
     const prev=getPrevSession(viewDay,ex.name);
-    const prevTxt=prev?`prev: ${prev.sets}×${prev.reps} @ ${prev.weight}kg`:'no previous data';
+    const prevTxt=prev?`prev: ${prev.sets}×${prev.reps} @ ${prev.weight}kg`:'no prev data';
+    const targetTxt=ex.targetReps?` (target: ${ex.sets}×${ex.targetReps})`:'';
     return`<div class="exercise-row">
       <input type="text" value="${ex.name}" onchange="updateGymEx(${i},'name',this.value)" style="flex:2;min-width:140px" />
-      <input type="number" value="${ex.sets}" min="1" onchange="updateGymEx(${i},'sets',this.value)" placeholder="sets" style="max-width:60px" />
+      <input type="number" value="${ex.sets}" min="1" onchange="updateGymEx(${i},'sets',this.value)" style="max-width:55px" title="sets"/>
       <span class="text-dim text-xs">×</span>
-      <input type="number" value="${ex.reps}" min="1" onchange="updateGymEx(${i},'reps',this.value)" placeholder="reps" style="max-width:60px" />
+      <input type="text" value="${ex.reps}" onchange="updateGymEx(${i},'reps',this.value)" style="max-width:65px" title="reps"/>
       <span class="text-dim text-xs">@</span>
-      <input type="number" value="${ex.weight}" min="0" onchange="updateGymEx(${i},'weight',this.value)" placeholder="kg" style="max-width:70px" />
+      <input type="number" value="${ex.weight||0}" min="0" step="0.5" onchange="updateGymEx(${i},'weight',this.value)" style="max-width:65px" title="kg"/>
       <span class="text-dim text-xs">kg</span>
-      <div class="prev-val">${prevTxt}</div>
+      <div class="prev-val">${prevTxt}${targetTxt}</div>
       <button onclick="removeGymEx(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>
     </div>`;
   }).join('');
 }
 window.updateGymEx=(i,field,val)=>{
-  _gymCurrentExercises[i][field]=field==='name'?val:+val||0;
+  _gymCurrentExercises[i][field]=(field==='sets'||field==='weight')?+val||0:val;
   if(field==='name')updateSplitExerciseTemplate();
 };
-window.removeGymEx=i=>{_gymCurrentExercises.splice(i,1);updateSplitExerciseTemplate();renderGymExerciseRows(getGymDay());};
-window.addGymExercise=()=>{_gymCurrentExercises.push({name:'New exercise',sets:3,reps:8,weight:0});updateSplitExerciseTemplate();renderGymExerciseRows(getGymDay());};
-
+window.removeGymEx=i=>{_gymCurrentExercises.splice(i,1);updateSplitExerciseTemplate();const v=getGymDay();document.getElementById('gym-exercise-list').innerHTML='';renderGymExerciseRows(v);};
+window.addGymExercise=()=>{_gymCurrentExercises.push({name:'New exercise',sets:3,reps:'10',weight:0});updateSplitExerciseTemplate();renderGymExerciseRows(getGymDay());};
 window.saveGymSession=()=>{
   const viewDay=getGymDay();
-  if(getGymSplit()[viewDay].type==='Rest'){alert('Rest day — nothing to save.');return;}
+  if(getGymSplit()[viewDay].type.includes('Rest')){alert('Rest day — nothing to save.');return;}
   const today=todayStr();
-  const existingIdx=D.gymSessions.findIndex(s=>s.date===today&&s.day===viewDay);
-  const entry={id:existingIdx>=0?D.gymSessions[existingIdx].id:uid(),date:today,day:viewDay,type:getGymSplit()[viewDay].type,exercises:JSON.parse(JSON.stringify(_gymCurrentExercises)),createdAt:Date.now()};
-  if(existingIdx>=0)D.gymSessions[existingIdx]=entry;else D.gymSessions.push(entry);
-  save();renderGym();
-  alert('Session saved!');
+  const idx=D.gymSessions.findIndex(s=>s.date===today&&s.day===viewDay);
+  const entry={id:idx>=0?D.gymSessions[idx].id:uid(),date:today,day:viewDay,type:getGymSplit()[viewDay].type,exercises:JSON.parse(JSON.stringify(_gymCurrentExercises)),createdAt:Date.now()};
+  if(idx>=0)D.gymSessions[idx]=entry;else D.gymSessions.push(entry);
+  save();_gymCurrentExercises=null;renderGym();alert('Session saved!');
 };
-
 function renderGymHistory(){
-  const sorted=[...D.gymSessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
-  document.getElementById('gym-history').innerHTML=sorted.length?sorted.map(s=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div class="flex items-center justify-between mb-1"><div class="text-sm font-medium">${s.day} — ${s.type}</div><div class="text-xs text-dim">${fmtDate(s.date)}</div></div><div style="display:flex;flex-wrap:wrap;gap:4px">${s.exercises.map(e=>`<span class="tag tag-green text-xs">${e.name}: ${e.sets}×${e.reps}@${e.weight}kg</span>`).join('')}</div></div>`).join(''):'<div class="text-muted text-sm">No sessions logged yet.</div>';
+  const sorted=[...D.gymSessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  document.getElementById('gym-history').innerHTML=sorted.length?sorted.map(s=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+    <div class="flex items-center justify-between mb-1"><div class="text-sm font-medium">${s.day} — ${s.type}</div><div class="text-xs text-dim">${fmtDate(s.date)}</div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${s.exercises.map(e=>`<span class="tag tag-green text-xs">${e.name}: ${e.sets}×${e.reps}${e.weight?'@'+e.weight+'kg':''}</span>`).join('')}</div>
+  </div>`).join(''):'<div class="text-muted text-sm">No sessions logged yet.</div>';
 }
 
-// ============ HOME WORKOUT ============
-const HW_DEFAULT_EXERCISES=[
-  {name:'Push-ups',sets:3,reps:15},
-  {name:'Bodyweight Squats',sets:3,reps:20},
-  {name:'Lunges',sets:3,reps:12},
-  {name:'Plank',sets:3,reps:'45s'},
-  {name:'Glute Bridges',sets:3,reps:15},
-  {name:'Mountain Climbers',sets:3,reps:20}
-];
+// ============ HOME WORKOUT — exact 3-day split ============
+const HW_SPLIT_DEFAULT={
+  Tuesday:[
+    {name:'Pull-Ups',sets:4,reps:'8-10'},
+    {name:'Pike Push-Ups',sets:3,reps:'12'},
+    {name:'Diamond Push-Ups',sets:3,reps:'12'},
+    {name:'Chin-Ups',sets:3,reps:'8-10'},
+    {name:'Plank',sets:3,reps:'45s'},
+    {name:'Hanging Leg Raises',sets:3,reps:'12'},
+    {name:'Ab Wheel / Crunches',sets:3,reps:'15'},
+  ],
+  Thursday:[
+    {name:'Pull-Ups',sets:4,reps:'8-10'},
+    {name:'Wide Push-Ups',sets:3,reps:'15'},
+    {name:'Archer Push-Ups',sets:3,reps:'8 each'},
+    {name:'5kg DB Shoulder Press',sets:3,reps:'15'},
+    {name:'5kg DB Lateral Raise',sets:3,reps:'15'},
+    {name:'Plank to Push-Up',sets:3,reps:'10'},
+    {name:'Bicycle Crunches',sets:3,reps:'20'},
+  ],
+  Sunday:[
+    {name:'Pull-Ups',sets:3,reps:'max'},
+    {name:'Push-Ups',sets:3,reps:'20'},
+    {name:'Dips (between chairs)',sets:3,reps:'12'},
+    {name:'5kg DB Curl',sets:3,reps:'15'},
+    {name:'Dead Hang',sets:3,reps:'30s'},
+    {name:'Plank',sets:3,reps:'60s'},
+    {name:'Leg Raises',sets:3,reps:'15'},
+  ]
+};
 let _hwCurrentExercises=null;
+
+function getHWSplit(){
+  if(!D.hwSplit){D.hwSplit=JSON.parse(JSON.stringify(HW_SPLIT_DEFAULT));save();}
+  return D.hwSplit;
+}
+
 function renderHomeWorkout(){
   applySectionMeta('homeworkout','hw-title',null,'Home Workout','');
-  document.getElementById('hw-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  const todayDayName=GYM_DAYS[(new Date().getDay()+6)%7];
+  document.getElementById('hw-date').textContent=`${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})} — ${getHWSplit()[todayDayName]?todayDayName:'(no home workout today)'}`;
+
+  const hwDays=Object.keys(HW_SPLIT_DEFAULT);
   if(!_hwCurrentExercises){
-    const todaySession=D.hwSessions.find(s=>s.date===todayStr());
-    _hwCurrentExercises=todaySession?JSON.parse(JSON.stringify(todaySession.exercises)):JSON.parse(JSON.stringify(HW_DEFAULT_EXERCISES));
+    const todaySesh=D.hwSessions.find(s=>s.date===todayStr());
+    const defaultForToday=getHWSplit()[todayDayName];
+    _hwCurrentExercises=todaySesh
+      ?JSON.parse(JSON.stringify(todaySesh.exercises))
+      :(defaultForToday?defaultForToday.map(e=>({...e})):[]);
   }
   renderHWRows();
   renderHWHistory();
 }
 function renderHWRows(){
-  document.getElementById('hw-exercise-list').innerHTML=_hwCurrentExercises.map((ex,i)=>`<div class="exercise-row">
+  document.getElementById('hw-exercise-list').innerHTML=_hwCurrentExercises.length?_hwCurrentExercises.map((ex,i)=>`<div class="exercise-row">
     <input type="text" value="${ex.name}" onchange="updateHWEx(${i},'name',this.value)" style="flex:2;min-width:140px" />
-    <input type="number" value="${ex.sets}" min="1" onchange="updateHWEx(${i},'sets',this.value)" placeholder="sets" style="max-width:60px" />
+    <input type="number" value="${ex.sets}" min="1" onchange="updateHWEx(${i},'sets',this.value)" style="max-width:55px" title="sets"/>
     <span class="text-dim text-xs">×</span>
-    <input type="text" value="${ex.reps}" onchange="updateHWEx(${i},'reps',this.value)" placeholder="reps" style="max-width:70px" />
+    <input type="text" value="${ex.reps}" onchange="updateHWEx(${i},'reps',this.value)" style="max-width:70px" title="reps"/>
     <button onclick="removeHWEx(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>
-  </div>`).join('');
+  </div>`).join(''):'<div class="text-muted text-sm">No exercises. Click + Add exercise or check if today is a home workout day.</div>';
 }
 window.updateHWEx=(i,field,val)=>{_hwCurrentExercises[i][field]=field==='sets'?+val||0:val;};
 window.removeHWEx=i=>{_hwCurrentExercises.splice(i,1);renderHWRows();};
-window.addHWExercise=()=>{_hwCurrentExercises.push({name:'New exercise',sets:3,reps:10});renderHWRows();};
+window.addHWExercise=()=>{_hwCurrentExercises.push({name:'New exercise',sets:3,reps:'10'});renderHWRows();};
 window.saveHomeWorkout=()=>{
+  if(!_hwCurrentExercises.length){alert('Add exercises first.');return;}
   const today=todayStr();
   const idx=D.hwSessions.findIndex(s=>s.date===today);
   const entry={id:idx>=0?D.hwSessions[idx].id:uid(),date:today,exercises:JSON.parse(JSON.stringify(_hwCurrentExercises)),createdAt:Date.now()};
   if(idx>=0)D.hwSessions[idx]=entry;else D.hwSessions.push(entry);
-  save();renderHomeWorkout();
-  alert('Session saved!');
+  save();_hwCurrentExercises=null;renderHomeWorkout();alert('Session saved!');
 };
 function renderHWHistory(){
-  const sorted=[...D.hwSessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
-  document.getElementById('hw-history').innerHTML=sorted.length?sorted.map(s=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div class="text-sm font-medium mb-1">${fmtDate(s.date)}</div><div style="display:flex;flex-wrap:wrap;gap:4px">${s.exercises.map(e=>`<span class="tag tag-blue text-xs">${e.name}: ${e.sets}×${e.reps}</span>`).join('')}</div></div>`).join(''):'<div class="text-muted text-sm">No sessions logged yet.</div>';
+  const sorted=[...D.hwSessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  document.getElementById('hw-history').innerHTML=sorted.length?sorted.map(s=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+    <div class="text-sm font-medium mb-1">${fmtDate(s.date)}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${s.exercises.map(e=>`<span class="tag tag-blue text-xs">${e.name}: ${e.sets}×${e.reps}</span>`).join('')}</div>
+  </div>`).join(''):'<div class="text-muted text-sm">No sessions logged yet.</div>';
 }
 
 // ============ STEPS / NEAT ============
 function getStepsTarget(){
-  const phase=getGymPhase().phase;
-  return phase==='peak'?10000:8000;
+  return getGymPhase().phase==='peak'?10000:8000;
 }
 function renderSteps(){
   applySectionMeta('steps','steps-title',null,'Steps / NEAT','');
   const target=getStepsTarget();
-  document.getElementById('steps-target-label').textContent=`Target: ${target.toLocaleString()} steps/day`;
+  const phase=getGymPhase();
+  document.getElementById('steps-target-label').textContent=`Target: ${target.toLocaleString()} steps/day · ${phase.label}`;
   document.getElementById('steps-target').textContent=target.toLocaleString();
   const today=todayStr();
   const todaySteps=D.stepsLog[today]||0;
   document.getElementById('steps-today').textContent=todaySteps.toLocaleString();
   document.getElementById('steps-today-bar').style.width=Math.min(100,Math.round(todaySteps/target*100))+'%';
   document.getElementById('steps-input').value=todaySteps||'';
-  // 7-day avg
+
   let sum=0,count=0,labels=[],data=[];
   for(let i=6;i>=0;i--){
     const d=new Date();d.setDate(d.getDate()-i);
@@ -1450,7 +1610,7 @@ function renderSteps(){
   const ctx=document.getElementById('steps-chart').getContext('2d');
   if(window._sC)window._sC.destroy();
   const ac=D.profile.accentColor||'#4ade80';
-  window._sC=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data,backgroundColor:`${ac}40`,borderColor:ac,borderWidth:2,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,grid:{color:'rgba(128,128,128,.08)'},ticks:{color:'#9090a8'}},x:{grid:{display:false},ticks:{color:'#9090a8'}}}}});
+  window._sC=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data,backgroundColor:data.map(v=>v>=target?ac+'99':ac+'40'),borderColor:data.map(v=>v>=target?ac:ac+'99'),borderWidth:2,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.toLocaleString()} steps`}}},scales:{y:{min:0,grid:{color:'rgba(128,128,128,.08)'},ticks:{color:'#9090a8',callback:v=>v>=1000?v/1000+'k':v}},x:{grid:{display:false},ticks:{color:'#9090a8'}}}}});
 }
 window.logSteps=()=>{
   const val=+document.getElementById('steps-input').value||0;
@@ -1458,114 +1618,202 @@ window.logSteps=()=>{
 };
 </script>
 <script>
-// ============ BOXING ============
-const BOXING_DEFAULT_SCHEDULE={
-  Monday:'Pad work',Tuesday:'Rest',Wednesday:'Bag work',Thursday:'Sparring',Friday:'Technique drills',Saturday:'Conditioning',Sunday:'Rest'
+// ============ BOXING — exact Tue/Thu/Sun solo bag+shadow sessions ============
+const BOXING_SESSIONS_DEFAULT={
+  Tuesday:{
+    label:'Tuesday — Technique Focus',
+    rounds:[
+      {name:'Jump rope warmup',duration:3,type:'warmup'},
+      {name:'Shadow boxing (jab, cross, hook, slip — technique)',duration:3,type:'shadow',rounds:3},
+      {name:'Bag work (combinations)',duration:3,type:'bag',rounds:3},
+      {name:'Conditioning (30s all-out → 30s rest)',duration:2,type:'conditioning',rounds:2},
+      {name:'Cooldown stretch',duration:2,type:'cooldown'},
+    ]
+  },
+  Thursday:{
+    label:'Thursday — Footwork & Defence',
+    rounds:[
+      {name:'Jump rope warmup',duration:3,type:'warmup'},
+      {name:'Shadow boxing (footwork + defence — slipping, rolling)',duration:3,type:'shadow',rounds:3},
+      {name:'Bag work (power shots + speed rounds alternating)',duration:3,type:'bag',rounds:4},
+      {name:'Cooldown stretch',duration:2,type:'cooldown'},
+    ]
+  },
+  Sunday:{
+    label:'Sunday — Long Session',
+    rounds:[
+      {name:'Jump rope warmup',duration:5,type:'warmup'},
+      {name:'Shadow boxing (full combos: 1-2-3-hook, 1-2-body-head)',duration:3,type:'shadow',rounds:3},
+      {name:'Bag work (3 min on, 1 min rest)',duration:3,type:'bag',rounds:4},
+      {name:'Burnout rounds (30s max punches → 30s rest ×3)',duration:2,type:'conditioning',rounds:2},
+      {name:'Cooldown + stretch',duration:3,type:'cooldown'},
+    ]
+  }
 };
+
 let _boxingViewDay=null;
-function getBoxingSchedule(){
-  if(!D.boxingSchedule){D.boxingSchedule=JSON.parse(JSON.stringify(BOXING_DEFAULT_SCHEDULE));save();}
-  return D.boxingSchedule;
-}
-function getBoxingDay(){return _boxingViewDay||DAYS[(new Date().getDay()+6)%7];}
+let _timerInterval=null;
+let _timerRunning=false;
+let _timerSeconds=0;
+
+function getBoxingDay(){return _boxingViewDay||GYM_DAYS[(new Date().getDay()+6)%7];}
 function setBoxingDay(day){_boxingViewDay=day;renderBoxing();}
 
+function getBoxingSchedule(){
+  if(!D.boxingSchedule){
+    D.boxingSchedule={
+      Monday:'Rest',Tuesday:'Session',Wednesday:'Rest',
+      Thursday:'Session',Friday:'Rest',Saturday:'Rest',Sunday:'Session'
+    };save();
+  }
+  return D.boxingSchedule;
+}
+
 function renderBoxing(){
-  applySectionMeta('boxing','boxing-title','boxing-sub','Boxing','Training log & weekly schedule');
+  applySectionMeta('boxing','boxing-title','boxing-sub','Boxing','Bag work + shadow — Tue / Thu / Sun');
   D.boxingSessions=D.boxingSessions||[];
   D.boxingTrackRounds=D.boxingTrackRounds||false;
-  document.getElementById('boxing-rounds-field').style.display=D.boxingTrackRounds?'block':'none';
-  document.getElementById('boxing-rounds-toggle').textContent=D.boxingTrackRounds?'− Hide rounds':'+ Track rounds';
 
   const viewDay=getBoxingDay();
   const schedule=getBoxingSchedule();
-  document.getElementById('boxing-day-tabs').innerHTML=DAYS.map(d=>`<div class="day-tab ${d===viewDay?'active':''}" onclick="setBoxingDay('${d}')">${d.slice(0,3)}</div>`).join('');
-  document.getElementById('boxing-schedule-label').innerHTML=`${viewDay}: <input type="text" value="${schedule[viewDay]}" list="boxing-types" style="background:transparent;border:none;padding:2px 0;width:auto;font-weight:600;font-size:14px;color:var(--text)" onchange="renameBoxingSchedule('${viewDay}',this.value)" />`;
+  const sessionPlan=BOXING_SESSIONS_DEFAULT[viewDay];
+  const isSessionDay=!!sessionPlan;
 
-  // prefill form from today's session if exists, else from schedule
-  const today=todayStr();
-  const todaySession=D.boxingSessions.find(s=>s.date===today);
-  if(todaySession){
-    document.getElementById('boxing-type').value=todaySession.type;
-    document.getElementById('boxing-duration').value=todaySession.duration||'';
-    document.getElementById('boxing-rounds').value=todaySession.rounds||'';
-    document.getElementById('boxing-notes').value=todaySession.notes||'';
+  document.getElementById('boxing-day-tabs').innerHTML=GYM_DAYS.map(d=>{
+    const isSession=!!BOXING_SESSIONS_DEFAULT[d];
+    return`<div class="day-tab ${d===viewDay?'active':''}" onclick="setBoxingDay('${d}')">${d.slice(0,3)}<br><span style="font-size:10px;color:${isSession?'var(--accent)':'var(--text3)'}">${isSession?'Session':'Rest'}</span></div>`;
+  }).join('');
+
+  const todaySession=D.boxingSessions.find(s=>s.date===todayStr()&&s.day===viewDay);
+
+  if(!isSessionDay){
+    document.getElementById('boxing-schedule-label').textContent=`${viewDay} — Rest`;
+    document.getElementById('boxing-schedule-label').innerHTML=`${viewDay} — Rest day 🥊`;
+    document.getElementById('gym-exercise-list') && null;
+    const el=document.getElementById('boxing-session-content');
+    if(el)el.innerHTML='<div class="text-muted text-sm">No boxing today. Rest or add a custom session.</div>';
   }else{
-    document.getElementById('boxing-type').value=schedule[viewDay]!=='Rest'?schedule[viewDay]:'';
-    document.getElementById('boxing-duration').value='';
-    document.getElementById('boxing-rounds').value='';
-    document.getElementById('boxing-notes').value='';
+    document.getElementById('boxing-schedule-label').textContent=sessionPlan.label;
+    const el=document.getElementById('boxing-session-content');
+    if(el){
+      el.innerHTML=`
+        <div class="flex items-center gap-3 mb-4">
+          <div class="habit-check ${todaySession?.completed?'done':''}" onclick="markBoxingComplete('${viewDay}')" style="cursor:pointer;width:28px;height:28px;font-size:16px">${todaySession?.completed?'✓':''}</div>
+          <span class="text-sm font-medium">${todaySession?.completed?'Session complete! 🥊':'Mark session complete'}</span>
+        </div>
+        <div class="mb-4" id="boxing-rounds-list">
+          ${sessionPlan.rounds.map((r,i)=>{
+            const typeColors={warmup:'tag-orange',shadow:'tag-blue',bag:'tag-green',conditioning:'tag-red',cooldown:'tag-purple'};
+            return`<div style="padding:10px 0;border-bottom:1px solid var(--border)" class="flex items-center gap-3">
+              <span class="tag ${typeColors[r.type]||'tag-blue'} text-xs" style="min-width:80px;justify-content:center">${r.type}</span>
+              <div style="flex:1"><div class="text-sm font-medium">${r.name}</div><div class="text-xs text-dim mt-1">${r.rounds?r.rounds+' rounds × ':''} ${r.duration} min</div></div>
+              <button class="btn btn-sm btn-ghost" style="font-size:11px;padding:3px 8px" onclick="startTimer(${r.duration*60})">${r.duration}min timer</button>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="card-sm" id="boxing-timer-card">
+          <div class="flex items-center gap-3">
+            <div id="boxing-timer-display" style="font-family:var(--mono);font-size:28px;font-weight:700;min-width:80px">0:00</div>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-accent" id="boxing-timer-btn" onclick="toggleTimer()">Start</button>
+              <button class="btn btn-sm" onclick="resetTimer()">Reset</button>
+            </div>
+            <div id="boxing-timer-label" class="text-xs text-dim"></div>
+          </div>
+        </div>
+        <div class="mt-3"><div class="label mb-1">Session notes</div><textarea id="boxing-notes" rows="2" style="resize:none" placeholder="Combos worked on, energy level, technique notes...">${todaySession?.notes||''}</textarea><button class="btn btn-sm mt-2" onclick="saveBoxingNotes('${viewDay}')">Save notes</button></div>`;
+    }
   }
   renderBoxingHistory();
 }
-window.renameBoxingSchedule=(day,val)=>{getBoxingSchedule()[day]=val;save();};
-window.toggleBoxingRounds=()=>{D.boxingTrackRounds=!D.boxingTrackRounds;save();renderBoxing();};
-window.saveBoxingSession=()=>{
-  const type=document.getElementById('boxing-type').value.trim();if(!type)return alert('Add a training type first.');
+
+window.markBoxingComplete=day=>{
+  D.boxingSessions=D.boxingSessions||[];
   const today=todayStr();
-  const entry={
-    id:uid(),date:today,
-    type,
-    duration:+document.getElementById('boxing-duration').value||0,
-    rounds:D.boxingTrackRounds?(+document.getElementById('boxing-rounds').value||0):undefined,
-    notes:document.getElementById('boxing-notes').value,
-    createdAt:Date.now()
-  };
-  const idx=D.boxingSessions.findIndex(s=>s.date===today);
-  if(idx>=0)entry.id=D.boxingSessions[idx].id,D.boxingSessions[idx]=entry;else D.boxingSessions.push(entry);
+  const idx=D.boxingSessions.findIndex(s=>s.date===today&&s.day===day);
+  if(idx>=0){D.boxingSessions[idx].completed=!D.boxingSessions[idx].completed;}
+  else{D.boxingSessions.push({id:uid(),date:today,day,completed:true,notes:'',createdAt:Date.now()});}
   save();renderBoxing();
-  alert('Session saved!');
 };
+
+window.saveBoxingNotes=day=>{
+  const today=todayStr(),notes=document.getElementById('boxing-notes').value;
+  const idx=D.boxingSessions.findIndex(s=>s.date===today&&s.day===day);
+  if(idx>=0){D.boxingSessions[idx].notes=notes;}
+  else{D.boxingSessions.push({id:uid(),date:today,day,completed:false,notes,createdAt:Date.now()});}
+  save();
+};
+
+// Timer
+window.startTimer=(seconds)=>{
+  resetTimer();_timerSeconds=seconds;
+  document.getElementById('boxing-timer-label').textContent=`${Math.floor(seconds/60)}:00 set`;
+  updateTimerDisplay();
+};
+window.toggleTimer=()=>{
+  if(_timerRunning){clearInterval(_timerInterval);_timerRunning=false;document.getElementById('boxing-timer-btn').textContent='Resume';}
+  else{
+    if(_timerSeconds<=0)return;
+    _timerRunning=true;document.getElementById('boxing-timer-btn').textContent='Pause';
+    _timerInterval=setInterval(()=>{
+      _timerSeconds--;updateTimerDisplay();
+      if(_timerSeconds<=0){clearInterval(_timerInterval);_timerRunning=false;document.getElementById('boxing-timer-btn').textContent='Start';document.getElementById('boxing-timer-display').style.color='var(--accent)';try{const a=new AudioContext();const o=a.createOscillator();o.connect(a.destination);o.frequency.value=880;o.start();o.stop(a.currentTime+0.3);}catch(e){}}
+    },1000);
+  }
+};
+window.resetTimer=()=>{clearInterval(_timerInterval);_timerRunning=false;_timerSeconds=0;updateTimerDisplay();document.getElementById('boxing-timer-btn').textContent='Start';document.getElementById('boxing-timer-display').style.color='var(--text)';};
+function updateTimerDisplay(){
+  const el=document.getElementById('boxing-timer-display');
+  if(!el)return;
+  const m=Math.floor(_timerSeconds/60),s=_timerSeconds%60;
+  el.textContent=`${m}:${String(s).padStart(2,'0')}`;
+}
+
 function renderBoxingHistory(){
-  const sorted=[...D.boxingSessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
+  const sorted=(D.boxingSessions||[]).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
   document.getElementById('boxing-history').innerHTML=sorted.length?sorted.map(s=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
-    <div class="flex items-center justify-between mb-1">
-      <div class="text-sm font-medium">${s.type}</div>
-      <div class="flex items-center gap-2"><div class="text-xs text-dim">${fmtDate(s.date)}</div><button onclick="deleteBoxingSession('${s.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button></div>
-    </div>
-    <div class="flex gap-2 flex-wrap">
-      ${s.duration?`<span class="tag tag-green text-xs">${s.duration} min</span>`:''}
-      ${s.rounds?`<span class="tag tag-blue text-xs">${s.rounds} rounds</span>`:''}
+    <div class="flex items-center justify-between">
+      <div class="text-sm font-medium">${s.day} <span class="tag ${s.completed?'tag-green':'tag-orange'} text-xs">${s.completed?'Complete':'Partial'}</span></div>
+      <div class="text-xs text-dim">${fmtDate(s.date)}</div>
     </div>
     ${s.notes?`<div class="text-xs text-dim mt-1">${s.notes}</div>`:''}
   </div>`).join(''):'<div class="text-muted text-sm">No sessions logged yet.</div>';
 }
-window.deleteBoxingSession=id=>{D.boxingSessions=D.boxingSessions.filter(s=>s.id!==id);save();renderBoxing();};
+</script>
 
+<script>
 // ============ SLEEP ============
 function renderSleep(){
   applySectionMeta('sleep','sleep-title',null,'Sleep','');
   D.sleepLog=D.sleepLog||{};
   document.getElementById('sleep-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
 
-  // quality picker
   const today=todayStr();
   const todayEntry=D.sleepLog[today]||{};
   D._sleepQuality=D._sleepQuality||todayEntry.quality||0;
-  document.getElementById('sleep-quality-picker').innerHTML=[1,2,3,4,5].map(n=>`<button class="btn btn-sm ${D._sleepQuality===n?'btn-accent':''}" onclick="setSleepQuality(${n})" style="flex:1">${n}</button>`).join('');
+  document.getElementById('sleep-quality-picker').innerHTML=[1,2,3,4,5].map(n=>`<button class="btn btn-sm ${D._sleepQuality===n?'btn-accent':''}" onclick="setSleepQuality(${n})" style="flex:1">${n} ${'★'.repeat(n)}</button>`).join('');
 
   document.getElementById('sleep-bedtime').value=todayEntry.bedtime||'';
   document.getElementById('sleep-waketime').value=todayEntry.waketime||'';
   updateSleepComputedHours();
 
-  // stats
   const sorted=Object.entries(D.sleepLog).sort((a,b)=>b[0].localeCompare(a[0]));
   const last=sorted[0];
   if(last){
     document.getElementById('sleep-last-hours').textContent=last[1].hours?last[1].hours.toFixed(1)+'h':'—';
-    document.getElementById('sleep-last-quality').textContent=last[1].quality?`Quality: ${last[1].quality}/5`:'';
+    document.getElementById('sleep-last-quality').textContent=last[1].quality?`Quality: ${'★'.repeat(last[1].quality)} (${last[1].quality}/5)`:'';
   }else{
     document.getElementById('sleep-last-hours').textContent='—';
     document.getElementById('sleep-last-quality').textContent='';
   }
-  // 7-day avg
+
   let sumH=0,sumQ=0,countH=0,countQ=0,labels=[],dataH=[];
   for(let i=6;i>=0;i--){
     const d=new Date();d.setDate(d.getDate()-i);
     const ds=d.toISOString().split('T')[0];
     const e=D.sleepLog[ds];
     labels.push(d.toLocaleDateString('en-IN',{weekday:'short'}));
-    dataH.push(e?e.hours||0:0);
+    dataH.push(e&&e.hours?e.hours:0);
     if(e&&e.hours){sumH+=e.hours;countH++;}
     if(e&&e.quality){sumQ+=e.quality;countQ++;}
   }
@@ -1575,7 +1823,7 @@ function renderSleep(){
   const ctx=document.getElementById('sleep-chart').getContext('2d');
   if(window._slC)window._slC.destroy();
   const ac=D.profile.accentColor||'#4ade80';
-  window._slC=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:dataH,backgroundColor:`${ac}40`,borderColor:ac,borderWidth:2,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:12,grid:{color:'rgba(128,128,128,.08)'},ticks:{color:'#9090a8',callback:v=>v+'h'}},x:{grid:{display:false},ticks:{color:'#9090a8'}}}}});
+  window._slC=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:dataH,backgroundColor:dataH.map(v=>v>=7?ac+'99':ac+'40'),borderColor:dataH.map(v=>v>=7?ac:ac+'99'),borderWidth:2,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+' hours'}}},scales:{y:{min:0,max:12,grid:{color:'rgba(128,128,128,.08)'},ticks:{color:'#9090a8',callback:v=>v+'h'}},x:{grid:{display:false},ticks:{color:'#9090a8'}}}}});
 }
 window.setSleepQuality=n=>{D._sleepQuality=n;renderSleep();};
 function updateSleepComputedHours(){
@@ -1586,9 +1834,9 @@ function updateSleepComputedHours(){
   const [bh,bm]=bed.split(':').map(Number);
   const [wh,wm]=wake.split(':').map(Number);
   let bedMin=bh*60+bm,wakeMin=wh*60+wm;
-  if(wakeMin<=bedMin)wakeMin+=24*60; // crossed midnight
+  if(wakeMin<=bedMin)wakeMin+=24*60;
   const hours=(wakeMin-bedMin)/60;
-  el.textContent=`= ${hours.toFixed(1)} hours of sleep`;
+  el.textContent=`= ${hours.toFixed(1)} hours${hours<6?' ⚠️ Low':hours>=8?' ✅':''}`;
 }
 document.addEventListener('change',e=>{
   if(e.target&&(e.target.id==='sleep-bedtime'||e.target.id==='sleep-waketime'))updateSleepComputedHours();
@@ -1602,7 +1850,6 @@ window.logSleep=()=>{
   let bedMin=bh*60+bm,wakeMin=wh*60+wm;
   if(wakeMin<=bedMin)wakeMin+=24*60;
   const hours=(wakeMin-bedMin)/60;
-  D.sleepLog=D.sleepLog||{};
   D.sleepLog[todayStr()]={bedtime:bed,waketime:wake,hours,quality:D._sleepQuality||0};
   save();renderSleep();
 };
@@ -1908,14 +2155,18 @@ function renderEOD(){
   const target=getStepsTarget();
   const log=D.dietLog[today]||{};
   const mealsEaten=['breakfast','lunch','dinner','extra'].filter(s=>log[s]&&log[s].eaten).length;
+  const waterToday=(D.waterLog||{})[today]||0;
+  const supps=(D.dietSupps||{})[today]||{};
   document.getElementById('eod-content').innerHTML=`
     <div class="eod-item"><div class="text-sm">Habits completed</div><div class="font-mono font-medium ${done===total&&total>0?'text-accent':'text-orange'}">${done}/${total}</div></div>
-    <div class="eod-item"><div class="text-sm">Gym session</div><div class="font-mono font-medium ${gymToday?'text-accent':'text-dim'}">${gymToday?gymToday.type+' done':'Not logged'}</div></div>
-    <div class="eod-item"><div class="text-sm">Home workout</div><div class="font-mono font-medium ${hwToday?'text-accent':'text-dim'}">${hwToday?'Done':'Not logged'}</div></div>
-    <div class="eod-item"><div class="text-sm">Boxing</div><div class="font-mono font-medium ${boxingToday?'text-accent':'text-dim'}">${boxingToday?boxingToday.type:'Not logged'}</div></div>
+    <div class="eod-item"><div class="text-sm">Gym session</div><div class="font-mono font-medium ${gymToday?'text-accent':'text-dim'}">${gymToday?gymToday.type+' \u2705':'Not logged'}</div></div>
+    <div class="eod-item"><div class="text-sm">Home workout</div><div class="font-mono font-medium ${hwToday?'text-accent':'text-dim'}">${hwToday?'Done \u2705':'Not logged'}</div></div>
+    <div class="eod-item"><div class="text-sm">Boxing</div><div class="font-mono font-medium ${boxingToday?.completed?'text-accent':'text-dim'}">${boxingToday?.completed?'Complete \u2705':boxingToday?'Partial':'Not logged'}</div></div>
     <div class="eod-item"><div class="text-sm">Steps</div><div class="font-mono font-medium ${stepsToday>=target?'text-accent':'text-orange'}">${stepsToday.toLocaleString()} / ${target.toLocaleString()}</div></div>
     <div class="eod-item"><div class="text-sm">Meals logged</div><div class="font-mono font-medium">${mealsEaten}/4</div></div>
-    <div class="eod-item"><div class="text-sm">Last night's sleep</div><div class="font-mono font-medium ${sleepLast?'text-accent':'text-dim'}">${sleepLast?sleepLast.hours.toFixed(1)+'h (Q'+sleepLast.quality+'/5)':'Not logged'}</div></div>
+    <div class="eod-item"><div class="text-sm">Water</div><div class="font-mono font-medium ${waterToday>=3500?'text-accent':'text-orange'}">${waterToday}ml / 3,500ml</div></div>
+    <div class="eod-item"><div class="text-sm">Whey + Creatine</div><div class="font-mono font-medium ${supps.whey&&supps.creatine?'text-accent':'text-orange'}">${supps.whey?'\u2705':'\u274c'} Whey \u00b7 ${supps.creatine?'\u2705':'\u274c'} Creatine</div></div>
+    <div class="eod-item"><div class="text-sm">Sleep last night</div><div class="font-mono font-medium ${sleepLast?'text-accent':'text-dim'}">${sleepLast?sleepLast.hours.toFixed(1)+'h (Q'+sleepLast.quality+'/5)':'Not logged'}</div></div>
     <div class="mt-3 text-sm text-muted">Today's focus: <span class="text-accent">${D.focus[today]||'(not set)'}</span></div>`;
   document.getElementById('eod-notes').value=D.eod[today]||'';
 }
@@ -1961,15 +2212,23 @@ window.exportData=(type)=>{
       });
     });
 
-    csv+='\n=== DIET LOG ===\nDATE,MEAL,EATEN,CALORIES,PROTEIN,CARBS,FAT,NOTES\n';
+    csv+='\n=== DIET LOG ===\nDATE,MEAL,EATEN,CALORIES,PROTEIN,CARBS,FAT,SUBSTITUTION\n';
     Object.entries(D.dietLog).forEach(([d,meals])=>{
+      if(typeof meals!=='object')return;
       Object.entries(meals).forEach(([slot,entry])=>{
+        if(slot==='sugar_free'||typeof entry!=='object')return;
         const dayName=DAYS[(new Date(d).getDay()+6)%7];
         const plan=DIET_PLAN[dayName]?DIET_PLAN[dayName][slot]:null;
         const used=entry.sub||plan||{kcal:0,protein:0,carbs:0,fat:0,desc:''};
         csv+=`${d},${slot},${entry.eaten?'yes':'no'},${used.kcal},${used.protein},${used.carbs},${used.fat},"${entry.sub?used.desc:''}"\n`;
       });
     });
+
+    csv+='\n=== WATER LOG ===\nDATE,ML\n';
+    Object.entries(D.waterLog||{}).forEach(([d,v])=>{csv+=`${d},${v}\n`;});
+
+    csv+='\n=== SUPPLEMENTS ===\nDATE,WHEY,CREATINE\n';
+    Object.entries(D.dietSupps||{}).forEach(([d,s])=>{csv+=`${d},${s.whey?'yes':'no'},${s.creatine?'yes':'no'}\n`;});
 
     csv+='\n=== CONVRT TASKS ===\nWORKSTREAM,TASK,DONE\n';
     D.convrtTasks.forEach(t=>{csv+=`${t.workstream},"${t.name}",${t.done?'yes':'no'}\n`;});
